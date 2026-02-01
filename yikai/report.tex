@@ -1,0 +1,127 @@
+\documentclass{article}
+
+\usepackage{cite}
+
+\title{Expert System for Smart Home}
+\author{Yichen Cai, Yikai Chen}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+The specific knowledge domain focus on intelligent control decision-making for indoor home environments, encompassing temperature, humidity, lighting, security, and ventilation systems. This domain requires making rational decisions on home device operation strategies based on environmental state changes (such as temperature, humidity, time periods, and occupancy status) and user preferences. It must balance living comfort with energy efficiency, minimizing energy waste while meeting comfort requirements.
+
+The decision-making process for indoor environmental control is typically rule-based and heavily reliant on experiential knowledge—such as which temperature and humidity ranges are generally considered comfortable, or what control strategies should be adopted during specific seasons and time periods. This knowledge exhibits distinct characteristics of expert systems, making it well-suited for expression and reasoning through rules.
+
+Additionally, after making control decisions, the system explains the rationale to users, clarifying why it took specific actions. This is particularly necessary for safety-related decisions, helping users understand and evaluate whether to adopt system recommendations. Authoritative information on indoor comfort, air quality, and energy-saving controls is widely available in public technical literature and standards, providing robust support for building system knowledge.
+
+Given that most users lack the expertise to balance comfort and energy efficiency in daily life, expert systems in this domain can provide valuable guidance and automated decision-making solutions. They demonstrate strong scalability and applicability across diverse residential environments.
+
+\section{Domain}
+
+The expert system's knowledge base is derived from authoritative sources on home comfort, safety, and energy efficiency. The following subsections detail the core rules implemented in the system.
+
+\subsection{Temperature Control}
+
+Temperature management balances comfort with energy efficiency based on occupancy and activity status.
+
+\subsubsection{Heating Guidelines}
+
+For winter heating, the system follows energy-efficient temperature settings recommended by Natural Resources Canada \cite{nrcan_winter_heating}:
+
+\begin{itemize}
+    \item Set thermostat to 17°C when sleeping or away from home
+    \item Set thermostat to 20°C when awake and at home
+\end{itemize}
+
+These settings provide adequate comfort while minimizing energy consumption during periods of reduced activity or absence.
+
+\subsubsection{Cooling Guidelines}
+
+For summer cooling, the system implements recommendations from Natural Resources Canada's guide on room air conditioners \cite{nrcan_cooling}:
+
+\begin{itemize}
+    \item Select 25.5°C as the highest comfortable thermostat setting when the space is occupied
+    \item If the space will be unoccupied for more than four hours, raise the thermostat to approximately 28°C
+    \item If the space will be unoccupied for more than 24 hours, turn off the air conditioning system
+\end{itemize}
+
+This approach prevents excessive cooling costs while maintaining comfort during occupancy.
+
+\subsection{Humidity Control}
+
+Proper humidity levels are essential for health and home maintenance. According to Health Canada's Healthy Home Guide \cite{health_canada_home}, humidity levels should be maintained between 30\% and 50\% using a humidifier or dehumidifier as necessary.
+
+\begin{itemize}
+    \item \textbf{Low humidity (below 30\%):} May aggravate skin allergies and cause respiratory infections. The system recommends using a humidifier.
+    \item \textbf{High humidity (above 50\%):} Can lead to mould growth. The system recommends using a dehumidifier.
+\end{itemize}
+
+\subsection{Carbon Monoxide Safety}
+
+Carbon monoxide (CO) detection is a critical safety feature. Health Canada warns that exposure to CO can lead to health problems ranging from tiredness and headaches to chest pain and even death, depending on the concentration in the air \cite{health_canada_home}.
+
+When the carbon monoxide alarm triggers, the system issues an immediate emergency alert recommending evacuation and contacting emergency services.
+
+\subsection{Indoor Air Quality (IAQI)}
+
+The system monitors indoor air quality using the Atmotube Indoor Air Quality Index (IAQI), which ranges from 0 to 100, with higher values indicating cleaner air \cite{atmotube_iaqi}. The scale is divided into five categories:
+
+\begin{itemize}
+    \item \textbf{Good (81--100):} Optimal air quality. The system aims to maintain this level in occupied spaces.
+    \item \textbf{Moderate (61--80):} Acceptable but improvement recommended.
+    \item \textbf{Polluted (41--60):} Poor air quality requiring intervention.
+    \item \textbf{Very Polluted (21--40):} Serious air quality issues requiring immediate action.
+    \item \textbf{Severely Polluted (0--20):} Critical air quality requiring urgent intervention.
+\end{itemize}
+
+The system recommends improving ventilation when IAQI falls below 61.
+
+\subsection{Outdoor Air Quality (AQHI)}
+
+The Air Quality Health Index (AQHI) measures outdoor air quality on a scale from 1 to 10. Health Canada recommends keeping windows closed when outdoor air quality is poor, such as during wildfires or extreme heat \cite{health_canada_home}. The system helps prevent poor outdoor air from entering the house by recommending that windows, doors, and skylights remain tightly sealed when AQHI exceeds 6.
+
+\subsection{Combined Decision Rules}
+
+The expert system also implements compound rules that consider multiple environmental factors simultaneously:
+
+\begin{itemize}
+    \item When both indoor and outdoor air quality are poor, the system recommends keeping windows closed while using an air purifier.
+    \item When high humidity coincides with poor indoor air quality, the system carefully balances dehumidification with ventilation improvements.
+\end{itemize}
+
+
+\section{Project Goal}
+
+The goal of this project is to design a rule-based intelligent home expert system that makes rational decisions regarding the operation of home appliances based on indoor environmental conditions and user preferences. This ensures residential comfort and safety while enhancing energy efficiency.
+
+\subsection{Environmental Perception and Status Evaluation}
+
+The system determines whether the current indoor environment is comfortable, safe, and energy-efficient based on environmental facts (e.g., temperature, humidity, time of day, occupancy status).
+
+\subsection{Intelligent Decision-Making and Control Recommendations}
+
+The system will generate explicit control decisions or recommendations for heating, air conditioning, ventilation, lighting, and related devices based on a rule base. These may include actions such as turning devices on/off or adjusting operating modes.
+
+\subsection{Decision Explanation}
+
+The system will provide clear explanations for its decisions, detailing the conditions and rationale that triggered the decision. This helps users understand system behavior and determine whether to adopt the recommendation.
+
+\section{User}
+
+The target users for this project are usual household residents—individuals who use smart home devices in daily life but lack specialized knowledge in indoor environmental control, energy management, or automation systems.
+
+These users typically desire a home environment that remains comfortable, secure, and energy-efficient, yet lack experience in assessing how various environmental factors collectively impact indoor conditions. For instance, they may struggle to accurately determine how to appropriately adjust temperature, humidity, lighting, or ventilation systems based on different seasons, time periods, or occupancy status.
+
+Additionally, these users prefer not to manually adjust device settings frequently. Instead, they expect the system to automatically provide reasonable control recommendations based on current environmental conditions and personal preferences, or to make automated decisions when necessary. Simultaneously, users value the explainability of system decisions, particularly regarding safety or energy consumption, and wish to understand why the system takes specific actions.
+
+Therefore, a rule-based smart home expert system capable of providing clear explanations can effectively meet this user's needs for comfort, safety, and energy efficiency.
+
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

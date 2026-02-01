@@ -1,0 +1,5 @@
+(clear)
+(load shs_fact.clp)
+(load shs_rule.clp)
+(reset)
+(run)
