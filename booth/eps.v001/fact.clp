@@ -13,8 +13,8 @@
 ; template is same like class
 (deftemplate env
     "Environment percepts"
-    (slot temp     (allowed-values cold comfortable hot))
-    (slot humidity (allowed-values dry normal humid))
+    (slot temp     (type INTEGER) (range -40 60)(default 23))
+    (slot humidity (type INTEGER) (range 0 100)(default 45))
 
     ; light: environment brightness
     (slot light    (allowed-values dark normal bright))
@@ -65,8 +65,8 @@
     (slot priority      (allowed-values comfort-first energy-saving)) ; maybe delete this one?
 
     ; allow user setting temp or humidity? user input need to be valid
-    (slot temp-pref     (allowed-values cold comfortable hot) (default comfortable))
-    (slot humidity-pref (allowed-values dry normal humid) (default normal))
+    (slot temp-pref     (type INTEGER) (range 10 35) (default 23))   ; target temp
+    (slot humidity-pref (type INTEGER) (range 0 100) (default 45))   ; target humidity %
 )
 
 ; we dont need this 
@@ -95,8 +95,8 @@
     ; --- percepts ---
     ; current just for test, should read from env(maybe a txt file)
     (env
-        (temp hot)
-        (humidity humid)
+        (temp 30)
+        (humidity 75)
         (light dark)
         (outdoor mild)
         (tod night)
@@ -121,7 +121,7 @@
 
     ; --- user preferences ---
     ; current just for test, should read from user
-    (user (lighting-pref normal) (priority energy-saving) (temp-pref comfortable) (humidity-pref normal))
+    (user (lighting-pref normal) (priority energy-saving) (temp-pref 23) (humidity-pref 45))
 )
 
 
