@@ -375,3 +375,66 @@
     (printout t "[AIR] air OK + energy-saving + outdoor extreme -> window CLOSE" crlf)
     (modify ?w (state closed))
 )
+
+; =========================
+; Window / Ventilation Rules
+; =========================
+
+; Nobody home -> CLOSE window (security + energy)
+(defrule window-outside-close
+    (declare (salience 50))
+    (occupancy (status outside))
+    ?w <- (device (name window) (state open))
+    =>
+    (assert (msg (text "[VENT] Nobody home -> CLOSE window (security/energy).")))
+    (printout t "[VENT] outside -> window CLOSE" crlf)
+    (modify ?w (state closed))
+)
+
+; Outdoor extreme (cold/hot) -> CLOSE window (keep comfort)
+(defrule window-outdoor-extreme-close
+    (declare (salience 35))
+    (env (outdoor cold|hot))
+    ?w <- (device (name window) (state open))
+    =>
+    (assert (msg (text "[VENT] Outdoor is extreme (cold/hot) -> CLOSE window to maintain comfort/energy.")))
+    (printout t "[VENT] outdoor extreme -> window CLOSE" crlf)
+    (modify ?w (state closed))
+)
+
+; Humidity high + outdoor mild + home-awake -> OPEN window (natural ventilation)
+(defrule window-open-for-humidity-when-mild-awake
+    (declare (salience 32))
+    (env (humidity ?h) (outdoor mild))
+    (occupancy (status home-awake))
+    (test (>= ?h 60))
+    ?w <- (device (name window) (state closed))
+    =>
+    (assert (msg (text "[VENT] Humidity>=60% + outdoor mild + home-awake -> OPEN window for natural ventilation.")))
+    (printout t "[VENT] humid>=60 + mild + awake -> window OPEN" crlf)
+    (modify ?w (state open))
+)
+
+; If humidity back to comfortable range AND energy-saving -> CLOSE window
+(defrule window-close-when-humidity-normal-energy-saving
+    (declare (salience 28))
+    (env (humidity ?h))
+    (test (and (>= ?h 40) (<= ?h 55)))
+    (user (priority energy-saving))
+    ?w <- (device (name window) (state open))
+    =>
+    (assert (msg (text "[VENT] Humidity normal (40-55%) + energy-saving -> CLOSE window.")))
+    (printout t "[VENT] humidity normal + energy-saving -> window CLOSE" crlf)
+    (modify ?w (state closed))
+)
+
+; Night + home-sleep -> CLOSE window (comfort + security)
+(defrule window-sleep-close
+    (declare (salience 27))
+    (occupancy (status home-sleep))
+    ?w <- (device (name window) (state open))
+    =>
+    (assert (msg (text "[VENT] home-sleep -> CLOSE window (comfort/security).")))
+    (printout t "[VENT] sleep -> window CLOSE" crlf)
+    (modify ?w (state closed))
+)
