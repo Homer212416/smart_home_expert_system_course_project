@@ -1,0 +1,13 @@
+{
+  "fetched_at": "2026-02-10T19:12:51.107367",
+  "source": "Environment Canada",
+  "weather": {
+    "temperature_c": -12.5,
+    "relative_humidity_pct": 60,
+    "station": "MONTREAL MIRABEL INTL A",
+    "observation_date": "2026-02-09 23:00:00"
+  },
+  "air_quality": {
+    "aqhi": 2
+  }
+}
