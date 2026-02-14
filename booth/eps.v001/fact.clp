@@ -121,7 +121,7 @@
 
     ; --- user preferences ---
     ; current just for test, should read from user
-    (user (lighting-pref normal) (priority energy-saving) (temp-pref 23) (humidity-pref 45))
+    (user (lighting-pref normal) (priority energy-saving) (temp-pref 23) (humidity-pref 45)) ; dont need
 )
 
 
