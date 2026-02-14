@@ -17,7 +17,7 @@
     (slot humidity (type INTEGER) (range 0 100)(default 45))
 
     ; light: environment brightness
-    (slot light    (allowed-values dark normal bright))
+    ; (slot light    (allowed-values dark normal bright))
     (slot outdoor  (allowed-values cold mild hot))
     (slot tod      (allowed-values morning afternoon evening night))
 
@@ -61,7 +61,7 @@
 (deftemplate user
     "User preferences"
     ; lighting-pref is preference
-    (slot lighting-pref (allowed-values dark normal bright) (default normal))
+    ; (slot lighting-pref (allowed-values dark normal bright) (default normal))
     (slot priority      (allowed-values comfort-first energy-saving)) ; maybe delete this one?
 
     ; allow user setting temp or humidity? user input need to be valid
@@ -97,7 +97,7 @@
     (env
         (temp 30)
         (humidity 75)
-        (light dark)
+        ; (light dark)
         (outdoor mild)
         (tod night)
         (IAQI 120)
@@ -117,11 +117,11 @@
     (device (name humidifier)    (state off))
     (device (name dehumidifier)  (state off))
     (device (name window)        (state closed))
-    (device (name light)    (state off))
+    ; (device (name light)    (state off))
 
     ; --- user preferences ---
     ; current just for test, should read from user
-    (user (lighting-pref normal) (priority energy-saving) (temp-pref 23) (humidity-pref 45)) ; dont need
+    ; (user (lighting-pref normal) (priority energy-saving) (temp-pref 23) (humidity-pref 45)) ; dont need
 )
 
 
