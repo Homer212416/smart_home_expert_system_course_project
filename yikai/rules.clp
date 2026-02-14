@@ -7,20 +7,6 @@
 ; ===============================================
 
 ; ===============================================
-; DEFFACTS - Initial Facts
-; ===============================================
-
-(deffacts initial-state "Initial home conditions"
-    (occupancy home)           ; home or away
-    (sleep-status awake)       ; awake or sleeping
-    (humidity 45)              ; percentage
-    (carbon-monoxide-alarm idle) ; idle or alert
-    (IAQI 85)                  ; Indoor Air Quality Index (0-100)
-    (AQHI 3)                   ; Air Quality Health Index (1-10)
-    (current-temp 18)          ; current temperature in Celsius
-)
-
-; ===============================================
 ; RULES - Temperature Control
 ; ===============================================
 
