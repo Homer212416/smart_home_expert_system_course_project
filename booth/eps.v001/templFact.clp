@@ -16,14 +16,12 @@
     (slot temp     (type INTEGER) (range -40 60)(default 23))
     (slot humidity (type INTEGER) (range 0 100)(default 45))
 
-    ; light: environment brightness
-    ; (slot light    (allowed-values dark normal bright))
     (slot outdoor  (allowed-values cold mild hot))
     (slot tod      (allowed-values morning afternoon evening night))
 
     ; Air quality
-    (slot IAQI     (type INTEGER) (default 50)) ; didnt check valid number just put some number for placeholder
-    (slot AQHI     (type INTEGER) (default 3))
+    (slot IAQI     (type INTEGER) (range 0 500)(default 50)) ; didnt check valid number just put some number for placeholder
+    (slot AQHI     (type INTEGER) (range 1 11)(default 3))
 )
 
 (deftemplate occupancy
@@ -48,11 +46,10 @@
 
 ; Devices controlled
 (deftemplate device
-  "Controllable devices"
-  (slot name
-        (allowed-values heater ac humidifier dehumidifier window light))
-  (slot state
-        (allowed-values on off open closed))
+    "Controllable devices"
+    (slot name (allowed-values heater ac humidifier dehumidifier window))
+    (slot power (allowed-values on off) (default off))
+    (slot position (allowed-values open closed) (default closed))
 )
 
 ; user setting
@@ -60,24 +57,10 @@
 ; or do not allow to setting some important setting, like safe
 (deftemplate user
     "User preferences"
-    ; lighting-pref is preference
-    ; (slot lighting-pref (allowed-values dark normal bright) (default normal))
-    (slot priority      (allowed-values comfort-first energy-saving)) ; maybe delete this one?
-
     ; allow user setting temp or humidity? user input need to be valid
     (slot temp-pref     (type INTEGER) (range 10 35) (default 23))   ; target temp
     (slot humidity-pref (type INTEGER) (range 0 100) (default 45))   ; target humidity %
 )
-
-; we dont need this 
-; (deftemplate assessment
-;   "Derived assessments (system conclusions)"
-;   (slot comfort (allowed-values ok warning bad) (default ok))
-;   (slot energy  (allowed-values ok warning bad) (default ok))
-;   (slot safety  (allowed-values ok warning danger) (default ok))
-;   (slot air     (allowed-values ok warning bad) (default ok))
-; )
-
 
 ; after result show why
 (deftemplate msg
@@ -94,34 +77,28 @@
 (deffacts startup-facts
     ; --- percepts ---
     ; current just for test, should read from env(maybe a txt file)
-    (env
-        (temp 30)
-        (humidity 75)
-        ; (light dark)
-        (outdoor mild)
-        (tod night)
-        (IAQI 120)
-        (AQHI 7)
-    )
+    ; (env
+    ;     (temp 30)
+    ;     (humidity 75)
+    ;     (outdoor mild)
+    ;     (tod night)
+    ;     (IAQI 120)
+    ;     (AQHI 7)
+    ; )
 
-    ; must match allowed-values
-    (occupancy (status home-awake))
+    ; ; must match allowed-values
+    ; (occupancy (status home-awake))
 
     ; --- safety devices ---
-    (carbon-monoxide-alarm (power on) (level low))
+    ; (carbon-monoxide-alarm (power on) (level low)) ; lets data give this
     (fire-alarm (power on) (triggered no) (sounding no))
 
     ; --- devices (initial states) ---
-    (device (name heater)        (state off))
-    (device (name ac)            (state off))
-    (device (name humidifier)    (state off))
-    (device (name dehumidifier)  (state off))
-    (device (name window)        (state closed))
-    ; (device (name light)    (state off))
-
-    ; --- user preferences ---
-    ; current just for test, should read from user
-    ; (user (lighting-pref normal) (priority energy-saving) (temp-pref 23) (humidity-pref 45)) ; dont need
+    (device (name heater)        (power off))
+    (device (name ac)            (power off))
+    (device (name humidifier)    (power off))
+    (device (name dehumidifier)  (power off))
+    (device (name window)        (position closed))
 )
 
 

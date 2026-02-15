@@ -1,18 +1,10 @@
-; =========================
-; run.clp
-; Smart Home Expert System
-; Entry point
-; =========================
-; use (batch "c:\\Users\\Booth\\Desktop\\eps\\run.clp") to run 
 (clear)
 
-(load "c:\\Users\\Booth\\Desktop\\eps\\fact.clp")
-(load "c:\\Users\\Booth\\Desktop\\eps\\rule.clp")
+(load "c:/Users/Booth/Documents/GitHub/smart_home_expert_system_course_project/booth/eps.v001/templFact.clp")
+(load "c:/Users/Booth/Documents/GitHub/smart_home_expert_system_course_project/booth/eps.v001/testRule.clp")
+(load "c:/Users/Booth/Documents/GitHub/smart_home_expert_system_course_project/booth/eps.v001/testRunner.clp")
 
-; do not have code yet
-(load "C:\Users\Booth\Desktop\eps\load-day-from-txt.clp")
+(run-all-scenarios)
 
-(reset)
 
-; for test
-(load-day-txt "days/2026-02-06.txt")
+; (batch "c:/Users/Booth/Documents/GitHub/smart_home_expert_system_course_project/booth/eps.v001/run.clp")

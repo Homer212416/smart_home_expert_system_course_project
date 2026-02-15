@@ -1,440 +1,333 @@
 ; =========================
-; Temperature Control
-; <=19 cold，>=26 hot，20~25 ok
+; rules.clp
+; Smart Home Expert System - Basic Rulebase (Fixed Threshold, NO user)
 ; =========================
-
-(defrule temp-hot-turn-on-ac
-    (declare (salience 40))
-    (env (temp ?t))
-    (occupancy (status home-awake home-sleep))
-    (test (>= ?t 26))
-    ?ac <- (device (name ac) (state off))
-    =>
-    (assert (msg (text "[TEMP] temp>=26 & someone home -> AC ON.")))
-    (printout t "[TEMP] " ?t "C >=26 -> AC ON" crlf)
-    (modify ?ac (state on))
-)
-
-(defrule temp-hot-turn-off-heater
-    (declare (salience 39))
-    (env (temp ?t))
-    (test (>= ?t 26))
-    ?h <- (device (name heater) (state on))
-    =>
-    (assert (msg (text "[TEMP] temp>=26 -> Heater OFF (avoid heating).")))
-    (printout t "[TEMP] " ?t "C >=26 -> Heater OFF" crlf)
-    (modify ?h (state off))
-)
-
-(defrule temp-cold-turn-on-heater
-    (declare (salience 40))
-    (env (temp ?t))
-    (occupancy (status home-awake home-sleep))
-    (test (<= ?t 19))
-    ?h <- (device (name heater) (state off))
-    =>
-    (assert (msg (text "[TEMP] temp<=19 & someone home -> Heater ON.")))
-    (printout t "[TEMP] " ?t "C <=19 -> Heater ON" crlf)
-    (modify ?h (state on))
-)
-
-(defrule temp-cold-turn-off-ac
-    (declare (salience 39))
-    (env (temp ?t))
-    (test (<= ?t 19))
-    ?ac <- (device (name ac) (state on))
-    =>
-    (assert (msg (text "[TEMP] temp<=19 -> AC OFF (avoid cooling).")))
-    (printout t "[TEMP] " ?t "C <=19 -> AC OFF" crlf)
-    (modify ?ac (state off))
-)
-
-(defrule temp-comfortable-turn-off-ac
-    (declare (salience 30))
-    (env (temp ?t))
-    (test (and (>= ?t 20) (<= ?t 25)))
-    ?ac <- (device (name ac) (state on))
-    =>
-    (assert (msg (text "[TEMP] 20<=temp<=25 -> AC OFF (save energy).")))
-    (printout t "[TEMP] " ?t "C in[20..25] -> AC OFF" crlf)
-    (modify ?ac (state off))
-)
-
-(defrule temp-comfortable-turn-off-heater
-    (declare (salience 30))
-    (env (temp ?t))
-    (test (and (>= ?t 20) (<= ?t 25)))
-    ?h <- (device (name heater) (state on))
-    =>
-    (assert (msg (text "[TEMP] 20<=temp<=25 -> Heater OFF (save energy).")))
-    (printout t "[TEMP] " ?t "C in[20..25] -> Heater OFF" crlf)
-    (modify ?h (state off))
-)
-
-; =========================
-; Humidity Control 
-; <=35 dry，>=60 wet，40~55 ok
-; =========================
-
-(defrule humidity-dry-turn-on-humidifier
-    (declare (salience 35))
-    (env (humidity ?h))
-    (occupancy (status home-awake home-sleep))
-    (test (<= ?h 35))
-    ?hu <- (device (name humidifier) (state off))
-    =>
-    (assert (msg (text "[HUM] humidity<=35% & someone home -> humidifier ON.")))
-    (printout t "[HUM] " ?h "% <=35 -> humidifier ON" crlf)
-    (modify ?hu (state on))
-)
-
-(defrule humidity-dry-turn-off-dehumidifier
-    (declare (salience 34))
-    (env (humidity ?h))
-    (test (<= ?h 35))
-    ?de <- (device (name dehumidifier) (state on))
-    =>
-    (assert (msg (text "[HUM] humidity<=35% -> dehumidifier OFF.")))
-    (printout t "[HUM] " ?h "% <=35 -> dehumidifier OFF" crlf)
-    (modify ?de (state off))
-)
-
-(defrule humidity-humid-turn-on-dehumidifier
-    (declare (salience 35))
-    (env (humidity ?h))
-    (occupancy (status home-awake home-sleep))
-    (test (>= ?h 60))
-    ?de <- (device (name dehumidifier) (state off))
-    =>
-    (assert (msg (text "[HUM] humidity>=60% & someone home -> dehumidifier ON.")))
-    (printout t "[HUM] " ?h "% >=60 -> dehumidifier ON" crlf)
-    (modify ?de (state on))
-)
-
-(defrule humidity-humid-turn-off-humidifier
-    (declare (salience 34))
-    (env (humidity ?h))
-    (test (>= ?h 60))
-    ?hu <- (device (name humidifier) (state on))
-    =>
-    (assert (msg (text "[HUM] humidity>=60% -> humidifier OFF.")))
-    (printout t "[HUM] " ?h "% >=60 -> humidifier OFF" crlf)
-    (modify ?hu (state off))
-)
-
-(defrule humidity-normal-turn-off-humidifier
-    (declare (salience 25))
-    (env (humidity ?h))
-    (test (and (>= ?h 40) (<= ?h 55)))
-    ?hu <- (device (name humidifier) (state on))
-    =>
-    (assert (msg (text "[HUM] 40%<=humidity<=55% -> humidifier OFF.")))
-    (printout t "[HUM] " ?h "% in[40..55] -> humidifier OFF" crlf)
-    (modify ?hu (state off))
-)
-
-(defrule humidity-normal-turn-off-dehumidifier
-    (declare (salience 25))
-    (env (humidity ?h))
-    (test (and (>= ?h 40) (<= ?h 55)))
-    ?de <- (device (name dehumidifier) (state on))
-    =>
-    (assert (msg (text "[HUM] 40%<=humidity<=55% -> dehumidifier OFF.")))
-    (printout t "[HUM] " ?h "% in[40..55] -> dehumidifier OFF" crlf)
-    (modify ?de (state off))
-)
-
-; =========================
-; Lighting Control
-; =========================
-
-; ; Night + dark + home-awake -> Light ON <== this one may be ppl dont want to open ?
-; (defrule light-night-dark-home-awake-on
-;     (declare (salience 20))
-;     (env (tod night) (light dark))
-;     (occupancy (status home-awake))
-;     ?l <- (device (name light) (state off))
-;     =>
-;     (assert (msg (text "[LIGHT] Night + dark + home-awake -> light ON (visibility).")))
-;     (printout t "[LIGHT] Night+dark+awake -> light ON" crlf)
-;     (modify ?l (state on))
-; )
-
-; ; Evening + dark + home-awake -> Light ON
-; (defrule light-evening-dark-home-awake-on
-;     (declare (salience 18))
-;     (env (tod evening) (light dark))
-;     (occupancy (status home-awake))
-;     ?l <- (device (name light) (state off))
-;     =>
-;     (assert (msg (text "[LIGHT] Evening + dark + home-awake -> light ON.")))
-;     (printout t "[LIGHT] Evening+dark+awake -> light ON" crlf)
-;     (modify ?l (state on))
-; )
-
-; ; Home-sleep -> Light OFF
-; (defrule light-sleep-off
-;     (declare (salience 25)) ; higher than turning on
-;     (occupancy (status home-sleep))
-;     ?l <- (device (name light) (state on))
-;     =>
-;     (assert (msg (text "[LIGHT] home-sleep -> light OFF (do not disturb).")))
-;     (printout t "[LIGHT] sleep -> light OFF" crlf)
-;     (modify ?l (state off))
-; )
-
-; ; Outside -> Light OFF (energy saving)
-; (defrule light-outside-off
-;     (declare (salience 22))
-;     (occupancy (status outside))
-;     ?l <- (device (name light) (state on))
-;     =>
-;     (assert (msg (text "[LIGHT] outside -> light OFF (energy saving).")))
-;     (printout t "[LIGHT] outside -> light OFF" crlf)
-;     (modify ?l (state off))
-; )
-
-; ; User prefers BRIGHT & awake -> Light ON
-; (defrule light-user-pref-bright-awake-on
-;     (declare (salience 16))
-;     (user (lighting-pref bright))
-;     (occupancy (status home-awake))
-;     ?l <- (device (name light) (state off))
-;     =>
-;     (assert (msg (text "[LIGHT] User prefers bright + home-awake -> light ON.")))
-;     (printout t "[LIGHT] user bright + awake -> light ON" crlf)
-;     (modify ?l (state on))
-; )
-
-; ; Daytime (morning/afternoon) + environment bright -> Light OFF
-; (defrule light-daytime-bright-off
-;     (declare (salience 15))
-;     (env (tod morning|afternoon) (light bright))
-;     ?l <- (device (name light) (state on))
-;     =>
-;     (assert (msg (text "[LIGHT] Daytime + bright -> light OFF (use natural light).")))
-;     (printout t "[LIGHT] daytime+bright -> light OFF" crlf)
-;     (modify ?l (state off))
-; )
-
-; =========================
-; Safety Rules (Fire / CO)
-; =========================
-
-; i do not know this, i think if just keep trigger or not, we may do not need alarm. So we can cut some rules
 
 ; -------------------------
-; FIRE: if triggered -> sound alarm
+; Safety rules (highest priority)
 ; -------------------------
-(defrule fire-triggered-sound-alarm
-    (declare (salience 100))
-    ?f <- (fire-alarm (power on) (triggered yes) (sounding no))
-    =>
-    (assert (msg (text "[SAFETY] Fire detected -> sound alarm NOW.")))
-    (printout t "[SAFETY] FIRE -> sounding YES" crlf)
-    (modify ?f (sounding yes))
+
+(defrule safety-fire-start-siren
+  (declare (salience 200))
+  ?fa <- (fire-alarm (power on) (triggered yes) (sounding no))
+  =>
+  (modify ?fa (sounding yes))
+  (assert (msg (text "[SAFETY] Fire detected -> siren ON.")))
 )
 
-; FIRE: if triggered -> turn OFF heater (reduce risk)
-(defrule fire-triggered-turn-off-heater
-    (declare (salience 95))
-    (fire-alarm (power on) (triggered yes))
-    ?h <- (device (name heater) (state on))
-    =>
-    (assert (msg (text "[SAFETY] Fire detected -> heater OFF.")))
-    (printout t "[SAFETY] FIRE -> heater OFF" crlf)
-    (modify ?h (state off))
+; when fire turn off everything
+(defrule safety-fire-shutdown-heater
+  (declare (salience 190))
+  (fire-alarm (triggered yes))
+  ?h  <- (device (name heater) (power on))
+  =>
+  (modify ?h (power off))
+  (assert (msg (text "[SAFETY] Fire -> heater OFF.")))
 )
 
-; FIRE: if triggered -> turn OFF AC (stop airflow feeding fire/smoke spread)
-(defrule fire-triggered-turn-off-ac
-    (declare (salience 95))
-    (fire-alarm (power on) (triggered yes))
-    ?ac <- (device (name ac) (state on))
-    =>
-    (assert (msg (text "[SAFETY] Fire detected -> AC OFF.")))
-    (printout t "[SAFETY] FIRE -> AC OFF" crlf)
-    (modify ?ac (state off))
+(defrule safety-fire-shutdown-ac
+  (declare (salience 190))
+  (fire-alarm (triggered yes))
+  ?ac <- (device (name ac) (power on))
+  =>
+  (modify ?ac (power off))
+  (assert (msg (text "[SAFETY] Fire -> AC OFF.")))
 )
 
-; FIRE: if triggered -> turn ON light (help evacuation) when awake
-(defrule fire-triggered-turn-on-light
-    (declare (salience 92))
-    (fire-alarm (power on) (triggered yes))
-    (occupancy (status home-awake))
-    ?l <- (device (name light) (state off))
-    =>
-    (assert (msg (text "[SAFETY] Fire detected -> turn ON light to help evacuation.")))
-    (printout t "[SAFETY] FIRE -> light ON" crlf)
-    (modify ?l (state on))
+(defrule safety-fire-shutdown-humidifier
+  (declare (salience 190))
+  (fire-alarm (triggered yes))
+  ?hu <- (device (name humidifier) (power on))
+  =>
+  (modify ?hu (power off))
+  (assert (msg (text "[SAFETY] Fire -> humidifier OFF.")))
 )
 
-; FIRE: optional -> open window (vent smoke) ONLY if outdoor is mild
-(defrule fire-triggered-open-window-if-outdoor-mild
-    (declare (salience 90))
-    (fire-alarm (power on) (triggered yes))
-    (env (outdoor mild))
-    ?w <- (device (name window) (state closed))
-    =>
-    (assert (msg (text "[SAFETY] Fire detected + outdoor mild -> open window for ventilation (if safe).")))
-    (printout t "[SAFETY] FIRE + outdoor mild -> window OPEN" crlf)
-    (modify ?w (state open))
+(defrule safety-fire-shutdown-dehumidifier
+  (declare (salience 190))
+  (fire-alarm (triggered yes))
+  ?dh <- (device (name dehumidifier) (power on))
+  =>
+  (modify ?dh (power off))
+  (assert (msg (text "[SAFETY] Fire -> dehumidifier OFF.")))
+)
+
+; Fire -> close window (reasonable + prevents feeding fire / smoke spread)
+(defrule safety-fire-close-window
+  (declare (salience 185))
+  (fire-alarm (triggered yes))
+  ?w <- (device (name window) (position open))
+  =>
+  (modify ?w (position closed))
+  (assert (msg (text "[SAFETY] Fire -> window CLOSED.")))
+)
+
+(defrule safety-co-high-open-window
+  (declare (salience 180))
+  (carbon-monoxide-alarm (power on) (level high))
+  ?w <- (device (name window) (position closed))
+  =>
+  (modify ?w (position open))
+  (assert (msg (text "[SAFETY] CO level HIGH -> window OPEN for ventilation.")))
+)
+
+(defrule safety-co-high-turn-off-heater
+  (declare (salience 175))
+  (carbon-monoxide-alarm (power on) (level high))
+  ?h <- (device (name heater) (power on))
+  =>
+  (modify ?h (power off))
+  (assert (msg (text "[SAFETY] CO level HIGH -> heater OFF.")))
 )
 
 ; -------------------------
-; CO: medium/high -> open window + turn OFF heater
+; Occupancy rules
 ; -------------------------
 
-(defrule co-medium-high-open-window
-    (declare (salience 98))
-    (carbon-monoxide-alarm (power on) (level medium|high))
-    ?w <- (device (name window) (state closed))
-    =>
-    (assert (msg (text "[SAFETY] CO level MEDIUM/HIGH -> open window for fresh air.")))
-    (printout t "[SAFETY] CO MED/HIGH -> window OPEN" crlf)
-    (modify ?w (state open))
+(defrule occupancy-outside-shutdown-heater
+  (declare (salience 120))
+  (occupancy (status outside))
+  ?h <- (device (name heater) (power on))
+  =>
+  (modify ?h (power off))
+  (assert (msg (text "[OCCUPANCY] Nobody home -> heater OFF.")))
 )
 
-(defrule co-medium-high-turn-off-heater
-    (declare (salience 97))
-    (carbon-monoxide-alarm (power on) (level medium|high))
-    ?h <- (device (name heater) (state on))
-    =>
-    (assert (msg (text "[SAFETY] CO level MEDIUM/HIGH -> heater OFF.")))
-    (printout t "[SAFETY] CO MED/HIGH -> heater OFF" crlf)
-    (modify ?h (state off))
+(defrule occupancy-outside-shutdown-ac
+  (declare (salience 120))
+  (occupancy (status outside))
+  ?ac <- (device (name ac) (power on))
+  =>
+  (modify ?ac (power off))
+  (assert (msg (text "[OCCUPANCY] Nobody home -> AC OFF.")))
 )
 
-; CO: if power off -> warn (no device action, just explanation)
-(defrule co-alarm-off-warning
-    (declare (salience 80))
-    (carbon-monoxide-alarm (power off))
-    =>
-    (assert (msg (text "[SAFETY] WARNING: CO alarm is OFF. Turn it ON for safety.")))
-    (printout t "[SAFETY] WARNING: CO alarm OFF" crlf)
+(defrule occupancy-outside-shutdown-humidifier
+  (declare (salience 115))
+  (occupancy (status outside))
+  ?hu <- (device (name humidifier) (power on))
+  =>
+  (modify ?hu (power off))
+  (assert (msg (text "[OCCUPANCY] Nobody home -> humidifier OFF.")))
 )
 
-; =========================
-; Air Quality Rules (IAQI / AQHI)
-; =========================
-
-; if IAQI>=101 OR AQHI>=7 => poor air 
-
-; Poor air + outdoor mild -> OPEN window
-(defrule air-poor-open-window-when-outdoor-mild
-    (declare (salience 70))
-    (env (IAQI ?i) (AQHI ?a) (outdoor mild))
-    (test (or (>= ?i 101) (>= ?a 7)))
-    ?w <- (device (name window) (state closed))
-    =>
-    (assert (msg (text "[AIR] Poor air (IAQI>=101 or AQHI>=7) + outdoor mild -> OPEN window for ventilation.")))
-    (printout t "[AIR] poor air + outdoor mild -> window OPEN" crlf)
-    (modify ?w (state open))
+(defrule occupancy-outside-shutdown-dehumidifier
+  (declare (salience 115))
+  (occupancy (status outside))
+  ?dh <- (device (name dehumidifier) (power on))
+  =>
+  (modify ?dh (power off))
+  (assert (msg (text "[OCCUPANCY] Nobody home -> dehumidifier OFF.")))
 )
 
-; Poor air + outdoor extreme (cold/hot) -> keep/close window + warning
-(defrule air-poor-outdoor-extreme-close-window
-    (declare (salience 69))
-    (env (IAQI ?i) (AQHI ?a) (outdoor cold|hot))
-    (test (or (>= ?i 101) (>= ?a 7)))
-    ?w <- (device (name window) (state open))
-    =>
-    (assert (msg (text "[AIR] Poor air BUT outdoor is extreme (cold/hot) -> CLOSE window; consider internal filtration (not modeled).")))
-    (printout t "[AIR] poor air + outdoor extreme -> window CLOSE" crlf)
-    (modify ?w (state closed))
+(defrule occupancy-outside-close-window
+  (declare (salience 110))
+  ; fix also here
+  (not (carbon-monoxide-alarm (level high)))
+  (occupancy (status outside))
+  ?w <- (device (name window) (position open))
+  =>
+  (modify ?w (position closed))
+  (assert (msg (text "[OCCUPANCY] Nobody home -> window CLOSED.")))
 )
 
-(defrule air-poor-outdoor-extreme-message
-    (declare (salience 68))
-    (env (IAQI ?i) (AQHI ?a) (outdoor cold|hot))
-    (test (or (>= ?i 101) (>= ?a 7)))
-    =>
-    (assert (msg (text "[AIR] Air quality is poor, but outdoor is extreme. Ventilation decision is constrained.")))
-    (printout t "[AIR] poor air but outdoor extreme -> message only" crlf)
+; -------------------------
+; Temperature control (Fixed thresholds)
+; deadband to avoid rapid toggling
+; Comfort band: 21-25
+; Turn ON:
+;   AC if temp > 25
+;   heater if temp < 21
+; Turn OFF (deadband):
+;   AC off if temp <= 24
+;   heater off if temp >= 22
+; -------------------------
+
+(defrule temp-too-hot-turn-on-ac
+  (declare (salience 80))
+  (fire-alarm (triggered no))
+  (occupancy (status home-awake|home-sleep))
+  (env (temp ?t))
+  ?ac <- (device (name ac) (power off))
+  (test (> ?t 25))
+  =>
+  (modify ?ac (power on))
+  (assert (msg (text "[TEMP] Temp > 25 -> AC ON.")))
 )
 
-; Air OK -> message (optional, helps explanation)
-(defrule air-ok-message
-    (declare (salience 20))
-    (env (IAQI ?i) (AQHI ?a))
-    (test (and (< ?i 101) (< ?a 7)))
-    =>
-    (assert (msg (text "[AIR] Air quality is acceptable (IAQI<101 and AQHI<7).")))
-    (printout t "[AIR] air OK" crlf)
+(defrule temp-too-cold-turn-on-heater
+  (declare (salience 80))
+  (fire-alarm (triggered no))
+  (occupancy (status home-awake|home-sleep))
+  (env (temp ?t))
+  ?h <- (device (name heater) (power off))
+  (test (< ?t 21))
+  =>
+  (modify ?h (power on))
+  (assert (msg (text "[TEMP] Temp < 21 -> heater ON.")))
 )
 
-; Energy-saving: if air OK + window open + outdoor not mild -> close window
-(defrule air-ok-energy-saving-close-window-when-outdoor-extreme
-    (declare (salience 30))
-    (env (IAQI ?i) (AQHI ?a) (outdoor cold|hot))
-    (test (and (< ?i 101) (< ?a 7)))
-    (user (priority energy-saving))
-    ?w <- (device (name window) (state open))
-    =>
-    (assert (msg (text "[AIR] Air OK + energy-saving + outdoor extreme -> CLOSE window to save energy.")))
-    (printout t "[AIR] air OK + energy-saving + outdoor extreme -> window CLOSE" crlf)
-    (modify ?w (state closed))
+(defrule temp-back-to-normal-turn-off-ac
+  (declare (salience 75))
+  (env (temp ?t))
+  ?ac <- (device (name ac) (power on))
+  (test (<= ?t 24))
+  =>
+  (modify ?ac (power off))
+  (assert (msg (text "[TEMP] Temp <= 24 -> AC OFF.")))
 )
 
-; =========================
-; Window / Ventilation Rules
-; =========================
+(defrule temp-back-to-normal-turn-off-heater
+  (declare (salience 75))
+  (env (temp ?t))
+  ?h <- (device (name heater) (power on))
+  (test (>= ?t 22))
+  =>
+  (modify ?h (power off))
+  (assert (msg (text "[TEMP] Temp >= 22 -> heater OFF.")))
+)
 
-; ; Nobody home -> CLOSE window (security + energy)
-; (defrule window-outside-close
-;     (declare (salience 50))
-;     (occupancy (status outside))
-;     ?w <- (device (name window) (state open))
-;     =>
-;     (assert (msg (text "[VENT] Nobody home -> CLOSE window (security/energy).")))
-;     (printout t "[VENT] outside -> window CLOSE" crlf)
-;     (modify ?w (state closed))
-; )
+(defrule temp-prevent-heater-and-ac-both-on
+  (declare (salience 90))
+  ?h  <- (device (name heater) (power on))
+  ?ac <- (device (name ac) (power on))
+  =>
+  ; policy: turn heater off if conflict
+  (modify ?h (power off))
+  (assert (msg (text "[TEMP] Conflict: heater & AC both ON -> heater OFF.")))
+)
 
-; ; Outdoor extreme (cold/hot) -> CLOSE window (keep comfort)
-; (defrule window-outdoor-extreme-close
-;     (declare (salience 35))
-;     (env (outdoor cold|hot))
-;     ?w <- (device (name window) (state open))
-;     =>
-;     (assert (msg (text "[VENT] Outdoor is extreme (cold/hot) -> CLOSE window to maintain comfort/energy.")))
-;     (printout t "[VENT] outdoor extreme -> window CLOSE" crlf)
-;     (modify ?w (state closed))
-; )
+; -------------------------
+; Humidity control (Fixed thresholds)
+; Comfort band: 40-60
+; Turn ON:
+;   dehumidifier if humidity > 60
+;   humidifier if humidity < 40
+; Turn OFF (deadband):
+;   dehumidifier off if humidity <= 55
+;   humidifier off if humidity >= 45
+; -------------------------
 
-; ; Humidity high + outdoor mild + home-awake -> OPEN window (natural ventilation)
-; (defrule window-open-for-humidity-when-mild-awake
-;     (declare (salience 32))
-;     (env (humidity ?h) (outdoor mild))
-;     (occupancy (status home-awake))
-;     (test (>= ?h 60))
-;     ?w <- (device (name window) (state closed))
-;     =>
-;     (assert (msg (text "[VENT] Humidity>=60% + outdoor mild + home-awake -> OPEN window for natural ventilation.")))
-;     (printout t "[VENT] humid>=60 + mild + awake -> window OPEN" crlf)
-;     (modify ?w (state open))
-; )
+(defrule humidity-too-high-turn-on-dehumidifier
+  (declare (salience 70))
+  (fire-alarm (triggered no))
+  (occupancy (status home-awake|home-sleep))
+  (env (humidity ?h))
+  ?dh <- (device (name dehumidifier) (power off))
+  (test (> ?h 60))
+  =>
+  (modify ?dh (power on))
+  (assert (msg (text "[HUM] Humidity > 60 -> dehumidifier ON.")))
+)
 
-; ; If humidity back to comfortable range AND energy-saving -> CLOSE window
-; (defrule window-close-when-humidity-normal-energy-saving
-;     (declare (salience 28))
-;     (env (humidity ?h))
-;     (test (and (>= ?h 40) (<= ?h 55)))
-;     (user (priority energy-saving))
-;     ?w <- (device (name window) (state open))
-;     =>
-;     (assert (msg (text "[VENT] Humidity normal (40-55%) + energy-saving -> CLOSE window.")))
-;     (printout t "[VENT] humidity normal + energy-saving -> window CLOSE" crlf)
-;     (modify ?w (state closed))
-; )
+(defrule humidity-too-low-turn-on-humidifier
+  (declare (salience 70))
+  (fire-alarm (triggered no))
+  (occupancy (status home-awake|home-sleep))
+  (env (humidity ?h))
+  ?hu <- (device (name humidifier) (power off))
+  (test (< ?h 40))
+  =>
+  (modify ?hu (power on))
+  (assert (msg (text "[HUM] Humidity < 40 -> humidifier ON.")))
+)
 
-; ; Night + home-sleep -> CLOSE window (comfort + security)
-; (defrule window-sleep-close
-;     (declare (salience 27))
-;     (occupancy (status home-sleep))
-;     ?w <- (device (name window) (state open))
-;     =>
-;     (assert (msg (text "[VENT] home-sleep -> CLOSE window (comfort/security).")))
-;     (printout t "[VENT] sleep -> window CLOSE" crlf)
-;     (modify ?w (state closed))
-; )
+(defrule humidity-back-to-normal-turn-off-dehumidifier
+  (declare (salience 65))
+  (env (humidity ?h))
+  ?dh <- (device (name dehumidifier) (power on))
+  (test (<= ?h 55))
+  =>
+  (modify ?dh (power off))
+  (assert (msg (text "[HUM] Humidity <= 55 -> dehumidifier OFF.")))
+)
+
+(defrule humidity-back-to-normal-turn-off-humidifier
+  (declare (salience 65))
+  (env (humidity ?h))
+  ?hu <- (device (name humidifier) (power on))
+  (test (>= ?h 45))
+  =>
+  (modify ?hu (power off))
+  (assert (msg (text "[HUM] Humidity >= 45 -> humidifier OFF.")))
+)
+
+(defrule humidity-prevent-both-humidifiers-on
+  (declare (salience 85))
+  ?hu <- (device (name humidifier) (power on))
+  ?dh <- (device (name dehumidifier) (power on))
+  =>
+  ; policy: turn humidifier off if conflict
+  (modify ?hu (power off))
+  (assert (msg (text "[HUM] Conflict: humidifier & dehumidifier both ON -> humidifier OFF.")))
+)
+
+; -------------------------
+; Window / Air Quality (simple)
+; -------------------------
+
+(defrule air-quality-bad-close-window
+  (declare (salience 95))
+  ; fix here also
+  (not (carbon-monoxide-alarm (level high)))
+  (env (IAQI ?i) (AQHI ?a))
+  ?w <- (device (name window) (position open))
+  (test (or (>= ?a 7) (>= ?i 150)))
+  =>
+  (modify ?w (position closed))
+  (assert (msg (text "[AIR] Poor air quality -> window CLOSED.")))
+)
+
+; Free cooling: if indoor hot and outdoor mild and air ok -> open window
+(defrule free-cooling-open-window
+  (declare (salience 60))
+  (fire-alarm (triggered no))
+  (carbon-monoxide-alarm (level low|medium))
+  (occupancy (status home-awake|home-sleep))
+  (env (temp ?t) (outdoor mild) (AQHI ?a) (IAQI ?i))
+  ?w <- (device (name window) (position closed))
+  (test (and (> ?t 25) (< ?a 7) (< ?i 150)))
+  =>
+  (modify ?w (position open))
+  (assert (msg (text "[VENT] Outdoor mild & air OK + indoor hot -> window OPEN (free cooling).")))
+)
+
+; If window open and HVAC running, turn HVAC off (avoid fighting)
+(defrule window-open-turn-off-ac
+  (declare (salience 62))
+  ?w <- (device (name window) (position open))
+  ?ac <- (device (name ac) (power on))
+  =>
+  (modify ?ac (power off))
+  (assert (msg (text "[VENT] Window open -> AC OFF (avoid conflict).")))
+)
+
+(defrule window-open-turn-off-heater
+  (declare (salience 62))
+  ?w <- (device (name window) (position open))
+  ?h <- (device (name heater) (power on))
+  =>
+  (modify ?h (power off))
+  (assert (msg (text "[VENT] Window open -> heater OFF (avoid conflict).")))
+)
+
+(defrule close-window-when-comfort-restored
+  (declare (salience 55))
+  ; fix here
+  (not (carbon-monoxide-alarm (level high)))
+  (env (temp ?t) (outdoor mild))
+  ?w <- (device (name window) (position open))
+  (test (<= ?t 24))
+  =>
+  (modify ?w (position closed))
+  (assert (msg (text "[VENT] Temp back near normal -> window CLOSED.")))
+)
+
+
+; print rules
+(defrule print-msg
+  ?m <- (msg (text ?t))
+  =>
+  (printout t ?t crlf)
+  (retract ?m)
+)
