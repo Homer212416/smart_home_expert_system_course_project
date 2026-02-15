@@ -1,10 +1,12 @@
+; =========================
+; run.clp
+; Smart Home Expert System
+; Entry point
+; =========================
+; use (batch "c:\\Users\\Booth\\Desktop\\eps\\run.clp") to run 
 (clear)
 
-(load "c:/Users/Booth/Documents/GitHub/smart_home_expert_system_course_project/booth/eps.v001/templFact.clp")
-(load "c:/Users/Booth/Documents/GitHub/smart_home_expert_system_course_project/booth/eps.v001/testRule.clp")
-(load "c:/Users/Booth/Documents/GitHub/smart_home_expert_system_course_project/booth/eps.v001/testRunner.clp")
+(load "c:\\Users\\Booth\\Desktop\\eps\\shs_fact.clp")
+(load "c:\\Users\\Booth\\Desktop\\eps\\shs_rule.clp")
 
-(run-all-scenarios)
-
-
-; (batch "c:/Users/Booth/Documents/GitHub/smart_home_expert_system_course_project/booth/eps.v001/run.clp")
+(reset)
