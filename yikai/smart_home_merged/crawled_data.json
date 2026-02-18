@@ -1,0 +1,76 @@
+{
+  "fetched_at": "2026-02-18T15:44:35.009105",
+  "source": "Environment Canada",
+  "days": [
+    {
+      "date": "2026-02-17",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": 2.4,
+      "min_temp_c": -1.2,
+      "aqhi": 2
+    },
+    {
+      "date": "2026-02-16",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": 1.7,
+      "min_temp_c": -11.3,
+      "aqhi": 3
+    },
+    {
+      "date": "2026-02-15",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": -5.8,
+      "min_temp_c": -15.8,
+      "aqhi": 2
+    },
+    {
+      "date": "2026-02-14",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": 0.7,
+      "min_temp_c": -9.8,
+      "aqhi": 3
+    },
+    {
+      "date": "2026-02-13",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": -4.8,
+      "min_temp_c": -16.1,
+      "aqhi": 2
+    },
+    {
+      "date": "2026-02-12",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": -4.3,
+      "min_temp_c": -14.3,
+      "aqhi": 3
+    },
+    {
+      "date": "2026-02-11",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": -3,
+      "min_temp_c": -8.2,
+      "aqhi": 2
+    },
+    {
+      "date": "2026-02-10",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": -5.3,
+      "min_temp_c": -15.3,
+      "aqhi": 3
+    },
+    {
+      "date": "2026-02-09",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": -9.7,
+      "min_temp_c": -20,
+      "aqhi": 2
+    },
+    {
+      "date": "2026-02-08",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": -15.3,
+      "min_temp_c": -21.5,
+      "aqhi": 3
+    }
+  ]
+}
