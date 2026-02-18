@@ -131,6 +131,18 @@
   (assert (msg (text "[OCCUPANCY] Nobody home -> window CLOSED.")))
 )
 
+; fix already outside, show explain message
+(defrule occupancy-outside-all-already-off
+  (declare (salience 109))
+  (occupancy (status outside))
+  (device (name heater) (power off))
+  (device (name ac) (power off))
+  (device (name humidifier) (power off))
+  (device (name dehumidifier) (power off))
+  =>
+  (assert (msg (text "[OCCUPANCY] Nobody home -> all devices already OFF (no action needed).")))
+)
+
 ; -------------------------
 ; Temperature control (Fixed thresholds)
 ; deadband to avoid rapid toggling
@@ -276,6 +288,17 @@
   =>
   (modify ?w (position closed))
   (assert (msg (text "[AIR] Poor air quality -> window CLOSED.")))
+)
+
+; fix if the window already close, so not show any message
+(defrule air-quality-bad-keep-window-closed
+  (declare (salience 94))
+  (not (carbon-monoxide-alarm (level high)))
+  (env (IAQI ?i) (AQHI ?a))
+  (device (name window) (position closed))
+  (test (or (>= ?a 7) (>= ?i 150)))
+  =>
+  (assert (msg (text "[AIR] Poor air quality -> window already CLOSED (good).")))
 )
 
 ; Free cooling: if indoor hot and outdoor mild and air ok -> open window

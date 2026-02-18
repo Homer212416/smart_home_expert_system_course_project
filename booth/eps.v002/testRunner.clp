@@ -37,9 +37,15 @@
 (deffunction run-all-scenarios ()
   (run-one-scenario "hot-humid" 30 75 mild night 120 7 home-awake low)
   (run-one-scenario "cold-dry" 18 30 cold morning 40 2 home-awake low)
-  (run-one-scenario "air-bad-close-window" 24 50 mild afternoon 200 8 home-awake low)
+  (run-one-scenario "air-bad-close-window" 24 50 mild afternoon 200 8 home-awake low) ; not showing message fixed
   (run-one-scenario "co-high" 22 45 mild evening 60 3 home-awake high)
-  (run-one-scenario "outside" 28 55 mild afternoon 80 4 outside low)
+  (run-one-scenario "outside" 28 55 mild afternoon 80 4 outside low)  ; not showing message
+  ; testing
+  ; (run-one-scenario "freezing-night-home" -5 40 cold night 35 2 home-asleep low)
+  ; (run-one-scenario "hot-clean-air" 32 45 hot afternoon 30 1 home-awake low)
+  ; (run-one-scenario "humid-only" 23 90 mild evening 50 3 home-awake low)
+  ; (run-one-scenario "toxic-air" 24 50 mild afternoon 350 9 home-awake low)
+  ; (run-one-scenario "empty-house-energy-save" 31 80 hot afternoon 100 5 outside low)
 
   (printout t "All scenarios done." crlf)
 )
