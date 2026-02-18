@@ -1,0 +1,147 @@
+3.1 Factbase F (Structured English)
+Concepts (Templates)
+
+ENV: represents environment percepts including indoor temperature, humidity, outdoor condition, time-of-day, IAQI, and AQHI.
+
+OCCUPANCY: represents whether the user is home-awake, home-sleep, or outside.
+
+CARBON-MONOXIDE-ALARM: represents CO alarm status, including power and CO level (low|medium|high).
+
+FIRE-ALARM: represents fire alarm status, including power, whether fire is triggered, and whether the siren is sounding.
+
+DEVICE: represents controllable devices and their states. All devices have power (on|off); the window additionally uses position (open|closed).
+
+USER: represents user preference targets for temperature and humidity.
+
+MSG: represents explanation messages asserted by rules for transparency and debugging.
+
+Useful Fact Sets (Instances)
+
+The system maintains non-trivial fact sets in working memory for reasoning.
+In implementation, multiple test scenarios are executed; each scenario asserts a complete set of percept facts such as:
+
+one ENV fact (temp, humidity, outdoor, tod, IAQI, AQHI),
+
+one OCCUPANCY fact,
+
+one CARBON-MONOXIDE-ALARM fact,
+
+one FIRE-ALARM fact,
+
+and a set of DEVICE facts for controlled devices.
+
+This provides at least 10 useful facts in working memory per scenario and supports repeatable testing.
+
+3.2 Rulebase R (Structured English)
+Safety Module (highest priority)
+
+R_SAF_01 Fire → Siren ON
+IF fire alarm is on AND fire is triggered AND siren is not sounding
+THEN set siren sounding to yes AND record an explanation message.
+
+R_SAF_02 Fire → Heater OFF
+IF fire is triggered AND heater is on
+THEN turn heater off AND explain.
+
+R_SAF_03 Fire → AC OFF
+IF fire is triggered AND AC is on
+THEN turn AC off AND explain.
+
+R_SAF_04 Fire → Humidifier OFF
+IF fire is triggered AND humidifier is on
+THEN turn humidifier off AND explain.
+
+R_SAF_05 Fire → Dehumidifier OFF
+IF fire is triggered AND dehumidifier is on
+THEN turn dehumidifier off AND explain.
+
+R_SAF_06 Fire → Window CLOSED
+IF fire is triggered AND window is open
+THEN close window AND explain.
+
+R_SAF_07 CO High → Window OPEN (ventilation)
+IF CO level is high AND window is closed
+THEN open window AND explain.
+
+R_SAF_08 CO High → Heater OFF
+IF CO level is high AND heater is on
+THEN turn heater off AND explain.
+
+Occupancy Module
+
+R_OCC_01 Outside → Heater OFF
+
+R_OCC_02 Outside → AC OFF
+
+R_OCC_03 Outside → Humidifier OFF
+
+R_OCC_04 Outside → Dehumidifier OFF
+
+R_OCC_05 Outside & no CO-high → Window CLOSED
+
+Temperature Control Module (fixed thresholds + deadband)
+
+R_TMP_01 Temp > 25 & someone home & no fire → AC ON
+
+R_TMP_02 Temp < 21 & someone home & no fire → Heater ON
+
+R_TMP_03 Temp ≤ 24 → AC OFF
+
+R_TMP_04 Temp ≥ 22 → Heater OFF
+
+R_TMP_05 Conflict (heater on & AC on) → Heater OFF
+
+Humidity Control Module (fixed thresholds + deadband)
+
+R_HUM_01 Humidity > 60 & someone home & no fire → Dehumidifier ON
+
+R_HUM_02 Humidity < 40 & someone home & no fire → Humidifier ON
+
+R_HUM_03 Humidity ≤ 55 → Dehumidifier OFF
+
+R_HUM_04 Humidity ≥ 45 → Humidifier OFF
+
+R_HUM_05 Conflict (humidifier & dehumidifier) → Humidifier OFF
+
+Air Quality / Ventilation Module
+
+R_AIR_01 Poor air (AQHI ≥ 7 OR IAQI ≥ 150) & window open → Window CLOSED
+
+R_VNT_01 Free cooling: indoor hot & outdoor mild & air OK → Window OPEN
+
+R_VNT_02 Window open → AC OFF (avoid conflict)
+
+R_VNT_03 Window open → Heater OFF (avoid conflict)
+
+R_VNT_04 Comfort restored & no CO-high → Window CLOSED
+
+(Explanation / Debugging Module
+R_EXP_01 Print and retract each explanation message
+IF an explanation message exists
+THEN print it and retract it to keep working memory clean.) <== this part i dont know
+
+3.3 Logic Semantics (Predicate-Logic Style)
+
+Let predicates represent the key concepts:
+
+Env(t,h,out,tod,iaqi,aqhi)
+
+Occ(status)
+
+CO(level)
+
+Fire(triggered, sounding)
+
+Device(name, power, position) (position used for window)
+
+Representative semantics examples:
+
+Fire(triggered=yes, sounding=no) → Fire(triggered=yes, sounding=yes)
+
+CO(high) ∧ Device(heater,on,_) → Device(heater,off,_)
+
+Occ(home-awake ∨ home-sleep) ∧ ¬Fire(triggered=yes) ∧ Env(t, …) ∧ t>25 ∧ Device(ac,off,_) → Device(ac,on,_)
+
+Env(humidity, …) ∧ humidity>60 ∧ Device(dehumidifier,off,_) → Device(dehumidifier,on,_)
+
+(AQHI≥7 ∨ IAQI≥150) ∧ Device(window,_,open) → Device(window,_,closed)
