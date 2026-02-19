@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 Smart Home Expert System - Web Crawler
 Fetches 10 days of Montreal weather and AQHI data from Environment Canada
-and generates CLIPS facts and JSON output.
+and saves the results as JSON.
 """
 
 import json
@@ -28,7 +28,6 @@ WEATHER_API_URL = (
 AQHI_PAGE_URL = "https://weather.gc.ca/airquality/pages/qcaq-001_e.html"
 
 JSON_OUTPUT = os.path.join(SCRIPT_DIR, "crawled_data.json")
-CLIPS_OUTPUT = os.path.join(SCRIPT_DIR, "crawled_facts.clp")
 
 DAYS_TO_FETCH = 10
 
@@ -122,33 +121,6 @@ def _to_int(val, default):
         return default
 
 
-def generate_clips_facts(days, aqhi_values):
-    """Generate outdoor CLIPS facts using the outdoor template from templates.clp."""
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    def get_aqhi(i):
-        return aqhi_values[i % len(aqhi_values)]
-
-    lines = [
-        "; ===============================================",
-        f"; {DAYS_TO_FETCH}-Day Crawled Outdoor Data from Environment Canada",
-        f"; Generated: {now}",
-        "; Requires: templates.clp loaded first",
-        "; ===============================================",
-        "",
-        f'(deffacts ten-day-outdoor "{DAYS_TO_FETCH}-day outdoor data from Environment Canada"',
-    ]
-
-    for i, day in enumerate(days):
-        date_str = day.get("date", "unknown")
-        high = _to_int(day.get("max_temp"), 20)
-        low  = _to_int(day.get("min_temp"), 10)
-        aqhi = get_aqhi(i)
-        lines.append(f'    (outdoor (date "{date_str}") (high-temp {high}) (low-temp {low}) (AQHI {aqhi}))')
-
-    lines += [")", ""]
-    return "\n".join(lines)
-
 
 def save_json(days, aqhi_values):
     """Save 10-day crawled data as JSON."""
@@ -205,11 +177,6 @@ def main():
         aqhi_values = [3]
 
     # Generate outputs
-    clips_text = generate_clips_facts(days, aqhi_values)
-    with open(CLIPS_OUTPUT, "w") as f:
-        f.write(clips_text)
-    print(f"CLIPS facts saved to {CLIPS_OUTPUT}")
-
     save_json(days, aqhi_values)
 
     print()
@@ -226,12 +193,7 @@ def main():
         )
     print("=" * 50)
     print()
-    print("To use in CLIPS:")
-    print('  (load "templates.clp")')
-    print('  (load "crawled_facts.clp")')
-    print('  (load "rules.clp")')
-    print("  (reset)")
-    print("  (run)")
+    print("Run gen_facts.py to combine with indoor data and generate facts.clp")
 
 
 if __name__ == "__main__":

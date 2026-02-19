@@ -21,10 +21,11 @@
     (slot AQHI      (type INTEGER) (range 1 11) (default 3)) ; outdoor Air Quality Health Index
 )
 
-; input from user
+; input from user - one fact per day
 (deftemplate occupancy
-    "Home occupancy status"
-    (slot status (allowed-values sleep awake gone))
+    "Home occupancy status for a specific date"
+    (slot date   (type STRING) (default "unknown"))
+    (slot status (allowed-values sleep awake gone) (default awake))
 )
 
 ; controllable devices (alarms are sensors in env, not listed here)

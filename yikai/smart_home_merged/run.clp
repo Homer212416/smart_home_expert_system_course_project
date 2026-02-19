@@ -2,11 +2,20 @@
 ; Smart Home Expert System - Run Script
 ;
 ; Prerequisites: generate data files first:
-;   python3 crawler.py       -> crawled_facts.clp  (outdoor)
-;   python3 gen_env_facts.py -> env_facts.clp      (indoor sensors + alarm signals)
+;   python3 crawler.py       -> crawled_data.json  (outdoor weather)
+;   python3 gen_env_facts.py -> env_data.json       (indoor sensors)
+;   edit user_data.json      -> set per-day occupancy (sleep/awake/gone)
+;   python3 gen_facts.py     -> facts.clp            (combined 10-day facts)
 ;
 ; Execute from the CLIPS prompt:
 ;   (batch "run.clp")
+;
+; Occupancy is loaded from user_data.json via facts.clp.
+; To change it, edit user_data.json and re-run gen_facts.py, then batch again.
+; To override interactively at the CLIPS prompt (not inside batch):
+;   (set-occupancy-for-date "2026-02-15" sleep)
+;   (set-all-occupancy gone)
+;   (ask-all-occupancy)   <- then call (run) manually
 ; ================================================
 
 (printout t "================================================" crlf)
@@ -18,15 +27,13 @@
 (load "templates.clp")
 (load "user.clp")
 (load "rules.clp")
-(load "crawled_facts.clp")
-(load "env_facts.clp")
+(load "facts.clp")
 
-; Initialize working memory (asserts all deffacts)
+; Initialize working memory (asserts all deffacts including occupancy)
 (reset)
 
-; Prompt user for occupancy status
-(ask-occupancy)
-(printout t crlf)
+; Show occupancy loaded from facts.clp
+(show-occupancy)
 
 ; Run the inference engine
 (run)

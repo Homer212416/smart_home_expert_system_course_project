@@ -1,0 +1,44 @@
+{
+  "days": [
+    {
+      "date": "2026-02-09",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-10",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-11",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-12",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-13",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-14",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-15",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-16",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-17",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-18",
+      "occupancy": "awake"
+    }
+  ]
+}

@@ -117,8 +117,8 @@
 (defrule heat-awake
     "Heater on: home occupied and awake, indoor temp below 20 C."
     (declare (salience 60))
-    (occupancy (status awake))
     (env (date ?date) (temp ?t))
+    (occupancy (date ?date) (status awake))
     (test (< ?t 20))
     (not (device (name heater)))
     =>
@@ -132,8 +132,8 @@
 (defrule heat-sleep
     "Heater on: occupant sleeping, indoor temp below 17 C."
     (declare (salience 60))
-    (occupancy (status sleep))
     (env (date ?date) (temp ?t))
+    (occupancy (date ?date) (status sleep))
     (test (< ?t 17))
     (not (device (name heater)))
     =>
@@ -147,11 +147,11 @@
 (defrule heater-off-gone
     "Heater off: home unoccupied, energy-saving mode."
     (declare (salience 60))
-    (occupancy (status gone))
+    (occupancy (date ?date) (status gone))
     (not (device (name heater)))
     =>
     (assert (device (name heater) (status off)))
-    (assert (msg (date "general") (text
+    (assert (msg (date ?date) (text
         "Heater OFF: home is unoccupied. Energy-saving mode active."
     )))
 )
@@ -165,8 +165,8 @@
 (defrule cool-awake
     "AC on: home occupied and awake, indoor temp exceeds 25.5 C."
     (declare (salience 60))
-    (occupancy (status awake))
     (env (date ?date) (temp ?t))
+    (occupancy (date ?date) (status awake))
     (test (> ?t 25))
     (not (device (name air-conditioner)))
     =>
@@ -180,8 +180,8 @@
 (defrule cool-gone
     "AC on at energy-saving threshold: home unoccupied, indoor temp above 28 C."
     (declare (salience 60))
-    (occupancy (status gone))
     (env (date ?date) (temp ?t))
+    (occupancy (date ?date) (status gone))
     (test (> ?t 28))
     (not (device (name air-conditioner)))
     =>
@@ -195,8 +195,8 @@
 (defrule ac-off-gone
     "AC off: home unoccupied and indoor temp within the 28 C limit."
     (declare (salience 60))
-    (occupancy (status gone))
     (env (date ?date) (temp ?t))
+    (occupancy (date ?date) (status gone))
     (test (<= ?t 28))
     (not (device (name air-conditioner)))
     =>
