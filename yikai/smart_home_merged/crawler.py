@@ -27,7 +27,7 @@ WEATHER_API_URL = (
 
 AQHI_PAGE_URL = "https://weather.gc.ca/airquality/pages/qcaq-001_e.html"
 
-JSON_OUTPUT = os.path.join(SCRIPT_DIR, "crawled_data.json")
+JSON_OUTPUT = os.path.join(SCRIPT_DIR, "outdoor_data.json")
 
 DAYS_TO_FETCH = 10
 
@@ -182,7 +182,7 @@ def main():
     print()
     print("=" * 50)
     print(f"{DAYS_TO_FETCH}-day data summary:")
-    for i, day in enumerate(days):
+    for i, day in reversed(list(enumerate(days))):
         aqhi = aqhi_values[i % len(aqhi_values)]
         date = str(day.get("date", "?"))
         print(

@@ -18,12 +18,12 @@ import random
 from datetime import date, timedelta
 
 SCRIPT_DIRECTORY  = os.path.dirname(os.path.abspath(__file__))
-JSON_OUTPUT_PATH = os.path.join(SCRIPT_DIRECTORY, "indoor_data.json")
+JSON_OUTPUT_PATH = os.path.join(SCRIPT_DIRECTORY, "generated_indoor_data.json")
 
 NUMBER_OF_DAYS = 10
 
 # Base values
-TEMP_BASE     = 22.0   # °C
+TEMP_BASE     = 15.0   # °C
 HUMIDITY_BASE = 40.0   # %
 IAQI_BASE     = 60.0   # index
 
@@ -38,8 +38,8 @@ HUMIDITY_MIN, HUMIDITY_MAX = 0, 100
 IAQI_MIN, IAQI_MAX         = 0, 100
 
 # Alarm trigger probabilities per day (low frequency)
-CO_ALARM_PROB   = 0.20   # 10 % chance of a CO event on any given day
-FIRE_ALARM_PROB = 0.20   # 10 % chance of a fire/smoke event on any given day
+CO_ALARM_PROB   = 0.10   # 10 % chance of a CO event on any given day
+FIRE_ALARM_PROB = 0.10   # 10 % chance of a fire/smoke event on any given day
 
 # Season
 SEASON = "winter" 
