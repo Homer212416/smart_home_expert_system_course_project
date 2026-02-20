@@ -1,6 +1,7 @@
 \documentclass{article}
 
 \usepackage{cite}
+\usepackage{url}
 
 \title{Expert System for Smart Home}
 \author{Yichen Cai, Yikai Chen}
@@ -20,7 +21,7 @@ Additionally, after making control decisions, the system explains the rationale 
 
 Given that most users lack the expertise to balance comfort and energy efficiency in daily life, expert systems in this domain can provide valuable guidance and automated decision-making solutions. They demonstrate strong scalability and applicability across diverse residential environments.
 
-\section{Domain}
+\section{TODO1: Domain}
 
 The expert system's knowledge base is derived from authoritative sources on home comfort, safety, and energy efficiency. The following subsections detail the core rules implemented in the system.
 
@@ -84,17 +85,16 @@ The system recommends improving ventilation when IAQI falls below 61.
 
 The Air Quality Health Index (AQHI) measures outdoor air quality on a scale from 1 to 10. Health Canada recommends keeping windows closed when outdoor air quality is poor, such as during wildfires or extreme heat \cite{health_canada_home}. The system helps prevent poor outdoor air from entering the house by recommending that windows, doors, and skylights remain tightly sealed when AQHI exceeds 6.
 
-\subsection{Combined Decision Rules}
+% \subsection{Combined Decision Rules}
 
-The expert system also implements compound rules that consider multiple environmental factors simultaneously:
+% The expert system also implements compound rules that consider multiple environmental factors simultaneously:
 
-\begin{itemize}
-    \item When both indoor and outdoor air quality are poor, the system recommends keeping windows closed while using an air purifier.
-    \item When high humidity coincides with poor indoor air quality, the system carefully balances dehumidification with ventilation improvements.
-\end{itemize}
+% \begin{itemize}
+%     \item When both indoor and outdoor air quality are poor, the system recommends keeping windows closed while using an air purifier.
+%     \item When high humidity coincides with poor indoor air quality, the system carefully balances dehumidification with ventilation improvements.
+% \end{itemize}
 
-
-\section{Project Goal}
+\section{TODO2: Project Goal}
 
 The goal of this project is to design a rule-based intelligent home expert system that makes rational decisions regarding the operation of home appliances based on indoor environmental conditions and user preferences. This ensures residential comfort and safety while enhancing energy efficiency.
 
@@ -110,7 +110,7 @@ The system will generate explicit control decisions or recommendations for heati
 
 The system will provide clear explanations for its decisions, detailing the conditions and rationale that triggered the decision. This helps users understand system behavior and determine whether to adopt the recommendation.
 
-\section{User}
+\section{TODO3: User}
 
 The target users for this project are usual household residents—individuals who use smart home devices in daily life but lack specialized knowledge in indoor environmental control, energy management, or automation systems.
 
@@ -119,6 +119,147 @@ These users typically desire a home environment that remains comfortable, secure
 Additionally, these users prefer not to manually adjust device settings frequently. Instead, they expect the system to automatically provide reasonable control recommendations based on current environmental conditions and personal preferences, or to make automated decisions when necessary. Simultaneously, users value the explainability of system decisions, particularly regarding safety or energy consumption, and wish to understand why the system takes specific actions.
 
 Therefore, a rule-based smart home expert system capable of providing clear explanations can effectively meet this user's needs for comfort, safety, and energy efficiency.
+
+
+\section{TODO4: Factbase + Rulebase}
+
+\subsection{Fact Base}
+
+The working memory of the expert system is defined in \texttt{facts.clp}.
+
+The file contains ten \texttt{deffacts} blocks, one for each day in the ten-day evaluation period. Each block asserts the following facts for its respective date:
+
+\begin{itemize}
+    \item \textbf{One \texttt{env} fact} combining all sensor readings for the day: indoor temperature (\textdegree C), relative humidity (\%), Indoor Air Quality Index (IAQI, 0--100), CO alarm status, fire alarm status, occupancy status (\texttt{awake}, \texttt{sleep}, or \texttt{gone}), season (\texttt{winter} or \texttt{summer}), outdoor high and low temperatures, and the outdoor Air Quality Health Index (AQHI, 1--11).
+    \item \textbf{One \texttt{themostat} fact} initialised to mode \texttt{off} with a default target of 22\textdegree C.
+    \item \textbf{Four \texttt{device} facts} — humidifier, dehumidifier, window, and air purifier — each initialised to \texttt{off}.
+\end{itemize}
+
+All facts carry the same \texttt{date} field so that each rule can match sensor data and controllable devices belonging to the same day, preventing cross-day fact interference in the CLIPS rete network.
+
+\subsection{Rule Base}
+
+The expert system is implemented in CLIPS as a set of production rules in \texttt{rules.clp}. Each rule follows the standard IF/THEN structure: the IF part (left-hand side) lists the conditions that must hold simultaneously; the THEN part (right-hand side) specifies the actions taken when all conditions are satisfied. Rules are evaluated in priority order (salience): safety alarms first (100), temperature control (60), humidity (40), window and outdoor air quality (35), and indoor air quality assessment (30). Emergency rules assert a sentinel fact \texttt{(emergency date)} that all lower-priority rules test for, ensuring no further actions are taken on a day where an emergency was detected.
+
+\subsubsection{Safety Alarms \textnormal{\small(salience 100)}}
+
+\paragraph{R1 -- Carbon Monoxide Emergency}
+\textbf{IF} the CO alarm is \emph{on} for a given date \\
+\textbf{THEN} assert an \texttt{emergency} sentinel for that date (blocking all lower-priority rules for that day) and issue the alert: \textit{``Carbon monoxide detected. Evacuate immediately and call 911. All other actions are blocked until the emergency is resolved.''}
+
+\paragraph{R2 -- Fire Emergency}
+\textbf{IF} the fire alarm is \emph{on} for a given date \\
+\textbf{THEN} assert an \texttt{emergency} sentinel for that date (blocking all lower-priority rules for that day) and issue the alert: \textit{``Fire/smoke detected. Evacuate immediately and call 911. All other actions are blocked until the emergency is resolved.''}
+
+\subsubsection{Temperature Control \textnormal{\small(salience 60)}}
+
+The thermostat is modelled as a single device with three modes: \texttt{heat}, \texttt{cool}, and \texttt{off}. Heating rules apply only in winter; cooling rules apply only in summer. All temperature rules are skipped on any day flagged with an emergency sentinel.
+
+\paragraph{R3 -- Heating When Awake}
+\textbf{IF} the season is \emph{winter} \\
+\textbf{AND} the occupant status is \emph{awake} \\
+\textbf{AND} the indoor temperature is below 20\textdegree C \\
+\textbf{AND} the thermostat is off \\
+\textbf{THEN} set the thermostat to \emph{HEAT} at 20\textdegree C and recommend: \textit{``Indoor temperature is below the 20\textdegree C comfort target for an occupied home (Natural Resources Canada).''}
+
+\paragraph{R4 -- Heating When Sleeping}
+\textbf{IF} the season is \emph{winter} \\
+\textbf{AND} the occupant status is \emph{sleep} \\
+\textbf{AND} the indoor temperature is below 17\textdegree C \\
+\textbf{AND} the thermostat is off \\
+\textbf{THEN} set the thermostat to \emph{HEAT} at 17\textdegree C and recommend: \textit{``Indoor temperature is below the 17\textdegree C sleep target (Natural Resources Canada).''}
+
+\paragraph{R5 -- Heating When Away}
+\textbf{IF} the season is \emph{winter} \\
+\textbf{AND} the occupant status is \emph{gone} \\
+\textbf{AND} the indoor temperature is below 17\textdegree C \\
+\textbf{AND} the thermostat is off \\
+\textbf{THEN} set the thermostat to \emph{HEAT} at 17\textdegree C and recommend: \textit{``Indoor temperature is below the 17\textdegree C away-from-home target (Natural Resources Canada).''}
+
+\paragraph{R6 -- Cooling When Awake}
+\textbf{IF} the season is \emph{summer} \\
+\textbf{AND} the occupant status is \emph{awake} \\
+\textbf{AND} the indoor temperature exceeds 25\textdegree C \\
+\textbf{AND} the thermostat is off \\
+\textbf{THEN} set the thermostat to \emph{COOL} at 25\textdegree C and recommend: \textit{``Indoor temperature exceeds the 25.5\textdegree C occupied comfort limit (Natural Resources Canada).''}
+
+\paragraph{R7 -- Cooling When Away}
+\textbf{IF} the season is \emph{summer} \\
+\textbf{AND} the occupant status is \emph{gone} \\
+\textbf{AND} the indoor temperature exceeds 28\textdegree C \\
+\textbf{AND} the thermostat is off \\
+\textbf{THEN} set the thermostat to \emph{COOL} at 28\textdegree C and recommend: \textit{``Indoor temperature exceeds the 28\textdegree C unoccupied energy-saving limit (Natural Resources Canada).''}
+
+\paragraph{R8 -- Thermostat Off When Away and Temperature Acceptable}
+\textbf{IF} the season is \emph{summer} \\
+\textbf{AND} the occupant status is \emph{gone} \\
+\textbf{AND} the indoor temperature is at or below 28\textdegree C \\
+\textbf{AND} the thermostat is off \\
+\textbf{THEN} report: \textit{``Thermostat OFF: home is unoccupied and indoor temperature is within the 28\textdegree C energy-saving limit.''}
+
+\subsubsection{Humidity Control \textnormal{\small(salience 40)}}
+
+\paragraph{R9 -- Activate Humidifier}
+\textbf{IF} the indoor humidity is below 30\% \\
+\textbf{AND} the humidifier is off \\
+\textbf{THEN} turn the humidifier \emph{on} and recommend: \textit{``Low humidity may aggravate skin allergies and respiratory infections (Health Canada).''}
+
+\paragraph{R10 -- Activate Dehumidifier}
+\textbf{IF} the indoor humidity exceeds 50\% \\
+\textbf{AND} the dehumidifier is off \\
+\textbf{THEN} turn the dehumidifier \emph{on} and recommend: \textit{``High humidity promotes mould growth (Health Canada).''}
+
+\paragraph{R11 -- Humidity Comfortable}
+\textbf{IF} the indoor humidity is between 30\% and 50\% (inclusive) \\
+\textbf{THEN} report: \textit{``Humidity is in the comfortable range (30--50\%). No action needed.''}
+
+\subsubsection{Window and Outdoor Air Quality Control \textnormal{\small(salience 35)}}
+
+\paragraph{R12 -- Close Windows: Poor Outdoor Air}
+\textbf{IF} the outdoor AQHI exceeds 6 \\
+\textbf{AND} the window is closed \\
+\textbf{THEN} report: \textit{``Window CLOSED: outdoor AQHI exceeds 6. Keep windows sealed to block outdoor pollutants (Health Canada).''}
+
+\paragraph{R13 -- Acceptable Outdoor Air}
+\textbf{IF} the outdoor AQHI is 6 or below \\
+\textbf{AND} the window is closed \\
+\textbf{THEN} report: \textit{``Outdoor AQHI is acceptable. No action needed.''}
+
+\subsubsection{Indoor Air Quality Assessment \textnormal{\small(salience 30)}}
+
+The following six rules fire independently for each day's sensor reading, providing a per-day air quality report. The IAQI scale ranges from 0 to 100, where higher values indicate cleaner air. Rules for Polluted and below also turn on the air purifier if it is not already running. When both indoor and outdoor air quality are poor simultaneously, an additional rule reinforces the air purifier action and advises keeping windows closed.
+
+\paragraph{R14 -- IAQI Good (81--100)}
+\textbf{IF} the indoor IAQI is 81 or above \\
+\textbf{THEN} report: \textit{``Indoor air quality: Good. No action needed.''}
+
+\paragraph{R15 -- IAQI Moderate (61--80)}
+\textbf{IF} the indoor IAQI is between 61 and 80 \\
+\textbf{THEN} report: \textit{``Indoor air quality: Moderate. The indoor air quality is acceptable, no action needed.''}
+
+\paragraph{R16 -- IAQI Polluted (41--60)}
+\textbf{IF} the indoor IAQI is between 41 and 60 \\
+\textbf{AND} the air purifier is off \\
+\textbf{THEN} turn the air purifier \emph{on} and report: \textit{``Indoor air quality: Polluted. The system has turned on the air purifier.''}
+
+\paragraph{R17 -- IAQI Very Polluted (21--40)}
+\textbf{IF} the indoor IAQI is between 21 and 40 \\
+\textbf{AND} the air purifier is off \\
+\textbf{THEN} turn the air purifier \emph{on} and report: \textit{``Indoor air quality: Very Polluted. The system has turned on the air purifier.''}
+
+\paragraph{R18 -- IAQI Severely Polluted (0--20)}
+\textbf{IF} the indoor IAQI is below 21 \\
+\textbf{AND} the air purifier is off \\
+\textbf{THEN} turn the air purifier \emph{on} and report: \textit{``Indoor air quality: Severely Polluted. The system has turned on the air purifier. Urgent intervention required.''}
+
+\paragraph{R19 -- Both Indoor and Outdoor Air Quality Poor}
+\textbf{IF} the indoor IAQI is below 61 (Polluted or worse) \\
+\textbf{AND} the outdoor AQHI exceeds 6 \\
+\textbf{AND} the air purifier is off \\
+\textbf{AND} no air purifier action has been issued yet for this run \\
+\textbf{THEN} turn the air purifier \emph{on} and report: \textit{``Indoor IAQI is poor and outdoor AQHI exceeds 6. Keep windows closed to avoid worsening indoor air quality.''}
+
+
 
 
 \bibliographystyle{plain}

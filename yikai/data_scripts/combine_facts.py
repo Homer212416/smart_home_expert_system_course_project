@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
 """
+#!/usr/bin/env python3
 Generate facts.clp from generated_indoor_data.json and outdoor_data.json.
 
 Produces 10 deffacts blocks — one per day — each containing:
@@ -19,7 +19,7 @@ from datetime import datetime
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
 INDOOR_JSON  = os.path.join(SCRIPT_DIR, "generated_indoor_data.json")
 OUTDOOR_JSON = os.path.join(SCRIPT_DIR, "outdoor_data.json")
-CLIPS_OUTPUT = os.path.join(SCRIPT_DIR, "facts.clp")
+CLIPS_OUTPUT = os.path.join(SCRIPT_DIR, "../facts.clp")
 
 
 def _to_int(val, default):

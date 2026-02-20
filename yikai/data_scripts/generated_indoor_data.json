@@ -2,9 +2,9 @@
   "days": [
     {
       "date": "2026-02-10",
-      "temp": 15,
-      "humidity": 12,
-      "iaqi": 57,
+      "temp": 14,
+      "humidity": 0,
+      "iaqi": 75,
       "co_alarm": "off",
       "fire_alarm": "off",
       "season": "winter",
@@ -13,8 +13,8 @@
     {
       "date": "2026-02-11",
       "temp": 9,
-      "humidity": 81,
-      "iaqi": 41,
+      "humidity": 29,
+      "iaqi": 51,
       "co_alarm": "off",
       "fire_alarm": "off",
       "season": "winter",
@@ -22,9 +22,9 @@
     },
     {
       "date": "2026-02-12",
-      "temp": 9,
-      "humidity": 31,
-      "iaqi": 34,
+      "temp": 16,
+      "humidity": 50,
+      "iaqi": 76,
       "co_alarm": "off",
       "fire_alarm": "off",
       "season": "winter",
@@ -32,49 +32,49 @@
     },
     {
       "date": "2026-02-13",
-      "temp": 20,
-      "humidity": 88,
-      "iaqi": 26,
-      "co_alarm": "on",
+      "temp": 7,
+      "humidity": 64,
+      "iaqi": 68,
+      "co_alarm": "off",
       "fire_alarm": "off",
       "season": "winter",
       "occupancy": "awake"
     },
     {
       "date": "2026-02-14",
-      "temp": 2,
-      "humidity": 25,
+      "temp": 20,
+      "humidity": 31,
       "iaqi": 59,
-      "co_alarm": "off",
-      "fire_alarm": "off",
-      "season": "winter",
-      "occupancy": "awake"
-    },
-    {
-      "date": "2026-02-15",
-      "temp": 23,
-      "humidity": 39,
-      "iaqi": 64,
-      "co_alarm": "off",
-      "fire_alarm": "off",
-      "season": "winter",
-      "occupancy": "gone"
-    },
-    {
-      "date": "2026-02-16",
-      "temp": 18,
-      "humidity": 55,
-      "iaqi": 55,
       "co_alarm": "off",
       "fire_alarm": "off",
       "season": "winter",
       "occupancy": "sleep"
     },
     {
+      "date": "2026-02-15",
+      "temp": 12,
+      "humidity": 64,
+      "iaqi": 62,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-16",
+      "temp": 13,
+      "humidity": 40,
+      "iaqi": 45,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "awake"
+    },
+    {
       "date": "2026-02-17",
-      "temp": 7,
-      "humidity": 59,
-      "iaqi": 64,
+      "temp": 16,
+      "humidity": 39,
+      "iaqi": 100,
       "co_alarm": "off",
       "fire_alarm": "off",
       "season": "winter",
@@ -82,23 +82,23 @@
     },
     {
       "date": "2026-02-18",
-      "temp": 20,
-      "humidity": 40,
-      "iaqi": 92,
+      "temp": 21,
+      "humidity": 38,
+      "iaqi": 39,
       "co_alarm": "off",
       "fire_alarm": "off",
       "season": "winter",
-      "occupancy": "sleep"
+      "occupancy": "awake"
     },
     {
       "date": "2026-02-19",
-      "temp": 22,
-      "humidity": 93,
-      "iaqi": 45,
+      "temp": 15,
+      "humidity": 67,
+      "iaqi": 75,
       "co_alarm": "off",
       "fire_alarm": "off",
       "season": "winter",
-      "occupancy": "sleep"
+      "occupancy": "gone"
     }
   ]
 }
