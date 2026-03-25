@@ -1,0 +1,104 @@
+{
+  "days": [
+    {
+      "date": "2026-02-14",
+      "temp": 12,
+      "humidity": 38,
+      "iaqi": 94,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-15",
+      "temp": 25,
+      "humidity": 79,
+      "iaqi": 57,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "gone"
+    },
+    {
+      "date": "2026-02-16",
+      "temp": 10,
+      "humidity": 52,
+      "iaqi": 53,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "awake"
+    },
+    {
+      "date": "2026-02-17",
+      "temp": 19,
+      "humidity": 31,
+      "iaqi": 76,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "gone"
+    },
+    {
+      "date": "2026-02-18",
+      "temp": 8,
+      "humidity": 29,
+      "iaqi": 75,
+      "co_alarm": "off",
+      "fire_alarm": "on",
+      "season": "winter",
+      "occupancy": "sleep"
+    },
+    {
+      "date": "2026-02-19",
+      "temp": 20,
+      "humidity": 44,
+      "iaqi": 51,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "gone"
+    },
+    {
+      "date": "2026-02-20",
+      "temp": 24,
+      "humidity": 100,
+      "iaqi": 55,
+      "co_alarm": "on",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "sleep"
+    },
+    {
+      "date": "2026-02-21",
+      "temp": 19,
+      "humidity": 20,
+      "iaqi": 67,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "gone"
+    },
+    {
+      "date": "2026-02-22",
+      "temp": 18,
+      "humidity": 22,
+      "iaqi": 43,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "gone"
+    },
+    {
+      "date": "2026-02-23",
+      "temp": 19,
+      "humidity": 22,
+      "iaqi": 40,
+      "co_alarm": "off",
+      "fire_alarm": "off",
+      "season": "winter",
+      "occupancy": "gone"
+    }
+  ]
+}
