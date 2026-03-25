@@ -1,0 +1,22 @@
+D2 TODO 1(a) — Summary of improvements needed
+
+Based on the D1 evaluator feedback and my own assessment of the D1 rulebase, the following improvements were identified. First, some explanation messages should be made more precise and directly tied to the actual triggering condition. Second, some rule explanations should be made numerically consistent with the thresholds used in the rule conditions. Third, certain auxiliary facts should be scoped more carefully by date in order to avoid cross-scenario interference when multiple daily cases are processed. Fourth, the rulebase should improve its coverage of seasonal and occupancy combinations that were not fully addressed in D1. The template structure itself was reviewed and retained, since it was already modular and separated environment data, devices, thermostat settings, and explanation messages clearly.
+
+D2 TODO 1(b) — Changes made
+
+To address these issues, I revised selected rule messages so that they are more specific and consistent with the exact triggering thresholds. In particular, I corrected the inconsistency in the cool-awake rule between the condition and the explanation text. I also updated the auxiliary recommendation fact used in the air-quality rules so that it is scoped by date, reducing the risk of cross-scenario interference. In addition, I refined emergency explanation messages to make their triggering conditions clearer. Finally, I improved the rulebase coverage by addressing a missing summer cooling case for sleeping occupancy.
+
+D2 TODO 1(a)
+1-Improve explanation specificity in selected D1 rules.
+2-Correct inconsistencies between numerical rule thresholds and explanation text.
+3-Scope auxiliary recommendation facts by date to avoid cross-scenario interference.
+4-Improve rule coverage for missing seasonal and occupancy combinations.
+
+D2 TODO 1(b)
+1-Revised selected explanation messages to make them more precise.
+2-Corrected the cool-awake message so that it matches the actual threshold used in the rule condition.
+	rule: cool-awake
+3-Changed the auxiliary air-quality recommendation fact to include date-specific scoping.
+	rule: both-air-quality-poor
+4-Added or planned a missing summer cooling case for sleeping occupancy. 
+	rule: cool-sleep

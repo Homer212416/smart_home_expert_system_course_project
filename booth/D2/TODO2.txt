@@ -1,0 +1,3 @@
+The D2 system is a hybrid expert system.
+Emergency handling remains deterministic, while temperature comfort, humidity control, and air-quality management are handled using certainty-factor-based uncertain reasoning.
+The system first infers intermediate beliefs, then derives action advice, and finally executes control actions when the confidence is high enough.

@@ -1,0 +1,4 @@
+1: D1 and D2-TODO2 both can run unbder CLIPS
+2: How to run
+    run D1 use command: load files -> (reset) -> (run)
+    run D2-TODO2 use command: load files -> (reset) -> (assert (system-flag (name use-uncertain))) -> (run)
