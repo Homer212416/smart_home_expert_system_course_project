@@ -811,58 +811,60 @@ Add a section with salience 50 (between fuzzification and the original D1 rules)
 ; ================================================
 
 (defrule fuzzy-heat-strong
-    "Fuzzy rule: IF temp IS cold AND occupancy IS awake THEN heat strongly (target 21C).
-     Fires when mu-temp-cold > 0.0 (any degree of cold membership)."
+    "Fuzzy inference: temp IS cold AND occupancy IS awake → strong heating needed.
+     Only asserts an explanatory msg — does NOT touch the thermostat.
+     The actual target is set by fuzzy-defuzzify-thermostat using the weighted average."
     (declare (salience 50))
     (env (date ?date) (occupancy awake) (season winter))
     (fuzzy-env (date ?date) (mu-temp-cold ?mu-cold))
     (not (emergency ?date))
     (test (> ?mu-cold 0.0))
-    ?th <- (themostat (date ?date) (mode off))
     =>
-    (modify ?th (mode heat) (target-temp 21))
     (assert (msg (date ?date) (text (str-cat
-        "Fuzzy heating (strong): temperature membership in 'cold' = " ?mu-cold
-        ". Setting thermostat to 21C."
+        "Fuzzy inference: temperature membership in 'cold' = " ?mu-cold
+        ". Strong heating contribution applied in defuzzification."
     ))))
 )
 
 (defrule fuzzy-heat-moderate
-    "Fuzzy rule: IF temp IS cool (but not cold) AND occupancy IS awake THEN heat moderately (target 19C)."
+    "Fuzzy inference: temp IS cool AND occupancy IS awake → moderate heating needed.
+     Only asserts an explanatory msg — does NOT touch the thermostat.
+     The actual target is set by fuzzy-defuzzify-thermostat using the weighted average."
     (declare (salience 50))
     (env (date ?date) (occupancy awake) (season winter))
-    (fuzzy-env (date ?date) (mu-temp-cold ?mu-cold) (mu-temp-cool ?mu-cool))
+    (fuzzy-env (date ?date) (mu-temp-cool ?mu-cool))
     (not (emergency ?date))
-    (test (and (> ?mu-cool 0.0) (= ?mu-cold 0.0)))
-    ?th <- (themostat (date ?date) (mode off))
+    (test (> ?mu-cool 0.0))
     =>
-    (modify ?th (mode heat) (target-temp 19))
     (assert (msg (date ?date) (text (str-cat
-        "Fuzzy heating (moderate): temperature membership in 'cool' = " ?mu-cool
-        ". Setting thermostat to 19C."
+        "Fuzzy inference: temperature membership in 'cool' = " ?mu-cool
+        ". Moderate heating contribution applied in defuzzification."
     ))))
 )
 
 (defrule fuzzy-defuzzify-thermostat
-    "Defuzzification: compute weighted-average thermostat target from all fuzzy heating memberships.
-     Updates fuzzy-env with the defuzzified target for reporting."
+    "Defuzzification (centroid method): compute weighted-average thermostat target
+     from all fuzzy temperature memberships, then apply it to the thermostat.
+     This is the ONLY rule that modifies the thermostat in the fuzzy pipeline.
+     Output mapping: cold → 21C, cool → 19C, comfortable → 18C."
     (declare (salience 45))
-    (env (date ?date) (season winter))
+    (env (date ?date) (occupancy awake) (season winter))
     ?fe <- (fuzzy-env (date ?date)
                       (mu-temp-cold ?mc)
                       (mu-temp-cool ?mco)
                       (mu-temp-comfortable ?mcomf))
     (not (emergency ?date))
+    ?th <- (themostat (date ?date) (mode off))
     =>
-    ; Output mapping: cold → 21C, cool → 19C, comfortable → 18C (no strong heat needed)
     (bind ?numerator   (+ (* ?mc 21.0) (* ?mco 19.0) (* ?mcomf 18.0)))
     (bind ?denominator (+ ?mc ?mco ?mcomf))
     (if (> ?denominator 0.0)
         then
         (bind ?target (/ ?numerator ?denominator))
         (modify ?fe (fuzzy-target-temp ?target))
+        (modify ?th (mode heat) (target-temp (integer (round ?target))))
         (assert (msg (date ?date) (text (str-cat
-            "Fuzzy defuzzification: computed thermostat target = "
+            "Fuzzy defuzzification: thermostat set to "
             (integer (round ?target)) "C "
             "(cold=" ?mc " cool=" ?mco " comfortable=" ?mcomf ")."
         ))))

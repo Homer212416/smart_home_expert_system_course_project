@@ -1,12 +1,15 @@
 ; ================================================
-; Smart Home Expert System - Run Script
+; Smart Home Expert System - Run Script  (D2 FuzzyCLIPS)
 ;
 ; Prerequisites: generate data files first:
-;   python3 crawler.py             -> outdoor_data.json        (outdoor weather)
-;   python3 generate_indoor_facts.py -> generated_indoor_data.json (indoor sensors + occupancy)
-;   python3 combine_facts.py       -> facts.clp                (combined 10-day env facts)
+;   python3 data_scripts/crawler.py              -> outdoor_data.json
+;   python3 data_scripts/generate_indoor_facts.py -> generated_indoor_data.json
+;   python3 data_scripts/combine_facts.py        -> facts.clp
 ;
-; Execute from the CLIPS prompt:
+; Execute with FuzzyCLIPS (NOT standard clips):
+;   fzclips -f run.clp
+;
+; Or from the FuzzyCLIPS prompt:
 ;   (batch "run.clp")
 ; ================================================
 

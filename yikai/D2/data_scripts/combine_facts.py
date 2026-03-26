@@ -71,13 +71,21 @@ def main():
         low        = _to_int(od.get("min_temp_c"),  10)
         aqhi       = _to_int(od.get("aqhi"),         3)
 
+        co_cf    = ind.get("co_alarm_cf",   0.85)
+        fire_cf  = ind.get("fire_alarm_cf", 0.90)
+        occ_cf   = ind.get("occupancy_cf",  0.75)
+        iaqi_cf  = ind.get("iaqi_cf",       0.80)
+        aqhi_cf  = ind.get("aqhi_cf",       0.70)
+
         label = date_str.replace("-", "")
         lines += [
             f'(deffacts day-{label} "Facts for {date_str}"',
             f'    (env (date "{date_str}") (temp {temp}) (humidity {humidity})'
             f' (IAQI {iaqi}) (co-alarm {co_alarm}) (fire-alarm {fire_alarm})'
             f' (occupancy {occupancy}) (season {season})'
-            f' (high-temp {high}) (low-temp {low}) (AQHI {aqhi}))',
+            f' (high-temp {high}) (low-temp {low}) (AQHI {aqhi})'
+            f' (co-alarm-cf {co_cf}) (fire-alarm-cf {fire_cf})'
+            f' (occupancy-cf {occ_cf}) (iaqi-cf {iaqi_cf}) (aqhi-cf {aqhi_cf}))',
             f'    (themostat (date "{date_str}") (mode off) (target-temp 22))',
             f'    (device (date "{date_str}") (name humidifier)   (status off))',
             f'    (device (date "{date_str}") (name dehumidifier) (status off))',
@@ -92,8 +100,8 @@ def main():
 
     print(f"Written {len(dates)} env facts to {CLIPS_OUTPUT}")
     print()
-    print(f"{'Date':<12}  {'Occ':<6}  {'Temp':>5}  {'Hum':>4}  {'IAQI':>4}  {'High':>5}  {'Low':>5}  {'AQHI':>4}  CO / Fire")
-    print("-" * 80)
+    print(f"{'Date':<12}  {'Occ':<6}  {'Temp':>5}  {'Hum':>4}  {'IAQI':>4}  {'High':>5}  {'Low':>5}  {'AQHI':>4}  CO / Fire   occ_cf  iaqi_cf  aqhi_cf  co_cf  fire_cf")
+    print("-" * 115)
     for date_str in dates:
         ind  = indoor_by_date[date_str]
         od   = outdoor_by_date.get(date_str, {})
@@ -103,11 +111,16 @@ def main():
         occ  = ind.get("occupancy", "awake")
         co   = "CO!"   if ind.get("co_alarm")   == "on" else "-"
         fire = "FIRE!" if ind.get("fire_alarm") == "on" else "-"
+        co_cf    = ind.get("co_alarm_cf",   0.85)
+        fire_cf  = ind.get("fire_alarm_cf", 0.90)
+        occ_cf   = ind.get("occupancy_cf",  0.75)
+        iaqi_cf  = ind.get("iaqi_cf",       0.80)
+        aqhi_cf  = ind.get("aqhi_cf",       0.70)
         print(
             f"{date_str:<12}  {occ:<6}  {_to_int(ind.get('temp'), 23):>4}°C"
             f"  {_to_int(ind.get('humidity'), 45):>3}%"
             f"  {_to_int(ind.get('iaqi'), 50):>4}  {high:>4}°C  {low:>4}°C  {aqhi:>4}"
-            f"  {co} / {fire}"
+            f"  {co:<3} / {fire:<5}   {occ_cf:>6.2f}  {iaqi_cf:>7.2f}  {aqhi_cf:>7.2f}  {co_cf:>5.2f}  {fire_cf:>7.2f}"
         )
 
 

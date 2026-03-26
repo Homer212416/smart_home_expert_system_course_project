@@ -1,76 +1,76 @@
 {
-  "fetched_at": "2026-02-24T19:00:21.920410",
+  "fetched_at": "2026-03-25T19:00:17.692096",
   "source": "Environment Canada",
   "days": [
     {
-      "date": "2026-02-23",
+      "date": "2026-03-24",
       "station": "MONTREAL INTL A",
-      "max_temp_c": -0.4,
-      "min_temp_c": -7.6,
+      "max_temp_c": 1.8,
+      "min_temp_c": -7.1,
       "aqhi": 3
     },
     {
-      "date": "2026-02-22",
+      "date": "2026-03-23",
       "station": "MONTREAL INTL A",
-      "max_temp_c": -0.6,
-      "min_temp_c": -11.1,
-      "aqhi": 3
+      "max_temp_c": 0.4,
+      "min_temp_c": -6.3,
+      "aqhi": 4
     },
     {
-      "date": "2026-02-21",
-      "station": "MONTREAL INTL A",
-      "max_temp_c": -4.2,
-      "min_temp_c": -11.1,
-      "aqhi": 2
-    },
-    {
-      "date": "2026-02-20",
-      "station": "MONTREAL INTL A",
-      "max_temp_c": -2,
-      "min_temp_c": -9.3,
-      "aqhi": 2
-    },
-    {
-      "date": "2026-02-19",
-      "station": "MONTREAL INTL A",
-      "max_temp_c": -1,
-      "min_temp_c": -11.8,
-      "aqhi": 3
-    },
-    {
-      "date": "2026-02-18",
-      "station": "MONTREAL INTL A",
-      "max_temp_c": 0,
-      "min_temp_c": -9.5,
-      "aqhi": 3
-    },
-    {
-      "date": "2026-02-17",
-      "station": "MONTREAL INTL A",
-      "max_temp_c": 2.4,
-      "min_temp_c": -1.2,
-      "aqhi": 2
-    },
-    {
-      "date": "2026-02-16",
-      "station": "MONTREAL INTL A",
-      "max_temp_c": 1.7,
-      "min_temp_c": -11.3,
-      "aqhi": 2
-    },
-    {
-      "date": "2026-02-15",
-      "station": "MONTREAL INTL A",
-      "max_temp_c": -5.8,
-      "min_temp_c": -15.8,
-      "aqhi": 3
-    },
-    {
-      "date": "2026-02-14",
+      "date": "2026-03-22",
       "station": "MONTREAL INTL A",
       "max_temp_c": 0.7,
-      "min_temp_c": -9.8,
+      "min_temp_c": -6.8,
+      "aqhi": 4
+    },
+    {
+      "date": "2026-03-21",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": 4.8,
+      "min_temp_c": -7.8,
+      "aqhi": 2
+    },
+    {
+      "date": "2026-03-20",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": -1.8,
+      "min_temp_c": -5.6,
       "aqhi": 3
+    },
+    {
+      "date": "2026-03-19",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": 1.1,
+      "min_temp_c": -5.6,
+      "aqhi": 4
+    },
+    {
+      "date": "2026-03-18",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": -3.8,
+      "min_temp_c": -12.4,
+      "aqhi": 4
+    },
+    {
+      "date": "2026-03-17",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": 1.6,
+      "min_temp_c": -10.6,
+      "aqhi": 2
+    },
+    {
+      "date": "2026-03-16",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": 13.8,
+      "min_temp_c": 0.6,
+      "aqhi": 3
+    },
+    {
+      "date": "2026-03-15",
+      "station": "MONTREAL INTL A",
+      "max_temp_c": 4.3,
+      "min_temp_c": -12.4,
+      "aqhi": 4
     }
   ]
 }
