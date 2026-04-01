@@ -91,6 +91,7 @@ def main():
             f'    (device (date "{date_str}") (name dehumidifier) (status off))',
             f'    (device (date "{date_str}") (name window)       (status off))',
             f'    (device (date "{date_str}") (name air-purifier) (status off))',
+            f'    (fuzzy-env (date "{date_str}"))',
             f')',
             "",
         ]

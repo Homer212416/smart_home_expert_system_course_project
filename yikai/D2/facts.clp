@@ -12,6 +12,7 @@
     (device (date "2026-03-15") (name dehumidifier) (status off))
     (device (date "2026-03-15") (name window)       (status off))
     (device (date "2026-03-15") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-15"))
 )
 
 (deffacts day-20260316 "Facts for 2026-03-16"
@@ -21,6 +22,7 @@
     (device (date "2026-03-16") (name dehumidifier) (status off))
     (device (date "2026-03-16") (name window)       (status off))
     (device (date "2026-03-16") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-16"))
 )
 
 (deffacts day-20260317 "Facts for 2026-03-17"
@@ -30,6 +32,7 @@
     (device (date "2026-03-17") (name dehumidifier) (status off))
     (device (date "2026-03-17") (name window)       (status off))
     (device (date "2026-03-17") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-17"))
 )
 
 (deffacts day-20260318 "Facts for 2026-03-18"
@@ -39,6 +42,7 @@
     (device (date "2026-03-18") (name dehumidifier) (status off))
     (device (date "2026-03-18") (name window)       (status off))
     (device (date "2026-03-18") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-18"))
 )
 
 (deffacts day-20260319 "Facts for 2026-03-19"
@@ -48,6 +52,7 @@
     (device (date "2026-03-19") (name dehumidifier) (status off))
     (device (date "2026-03-19") (name window)       (status off))
     (device (date "2026-03-19") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-19"))
 )
 
 (deffacts day-20260320 "Facts for 2026-03-20"
@@ -57,6 +62,7 @@
     (device (date "2026-03-20") (name dehumidifier) (status off))
     (device (date "2026-03-20") (name window)       (status off))
     (device (date "2026-03-20") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-20"))
 )
 
 (deffacts day-20260321 "Facts for 2026-03-21"
@@ -66,6 +72,7 @@
     (device (date "2026-03-21") (name dehumidifier) (status off))
     (device (date "2026-03-21") (name window)       (status off))
     (device (date "2026-03-21") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-21"))
 )
 
 (deffacts day-20260322 "Facts for 2026-03-22"
@@ -75,6 +82,7 @@
     (device (date "2026-03-22") (name dehumidifier) (status off))
     (device (date "2026-03-22") (name window)       (status off))
     (device (date "2026-03-22") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-22"))
 )
 
 (deffacts day-20260323 "Facts for 2026-03-23"
@@ -84,6 +92,7 @@
     (device (date "2026-03-23") (name dehumidifier) (status off))
     (device (date "2026-03-23") (name window)       (status off))
     (device (date "2026-03-23") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-23"))
 )
 
 (deffacts day-20260324 "Facts for 2026-03-24"
@@ -93,4 +102,5 @@
     (device (date "2026-03-24") (name dehumidifier) (status off))
     (device (date "2026-03-24") (name window)       (status off))
     (device (date "2026-03-24") (name air-purifier) (status off))
+    (fuzzy-env (date "2026-03-24"))
 )

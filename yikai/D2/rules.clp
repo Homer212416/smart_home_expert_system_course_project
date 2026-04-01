@@ -174,10 +174,10 @@
 
 (defrule fuzzify-env
     "Fuzzify crisp sensor readings into FuzzyCLIPS membership degrees.
-     Fires once per env fact; populates fuzzy-env for that date."
+     Fires once per env fact; modifies the blank fuzzy-env fact for that date."
     (declare (salience 80))
     (env (date ?date) (temp ?t) (humidity ?h) (AQHI ?a))
-    (not (fuzzy-env (date ?date)))
+    ?fe <- (fuzzy-env (date ?date) (mu-cold 0.0))
     =>
     (bind ?ft (float ?t))
     (bind ?fh (float ?h))
@@ -250,9 +250,8 @@
     (if (> ?mu-amod  ?max-mu) then (bind ?aqhi-label "moderate") (bind ?max-mu ?mu-amod))
     (if (> ?mu-apoor ?max-mu) then (bind ?aqhi-label "poor")     (bind ?max-mu ?mu-apoor))
 
-    ; store all membership degrees in fuzzy-env for this date
-    (assert (fuzzy-env
-        (date ?date)
+    ; fill in the blank fuzzy-env fact for this date
+    (modify ?fe
         (mu-cold             ?mu-cold)
         (mu-cool             ?mu-cool)
         (mu-comfortable-temp ?mu-comf)
@@ -267,7 +266,116 @@
         (temp-label          ?temp-label)
         (hum-label           ?hum-label)
         (aqhi-label          ?aqhi-label)
-    ))
+    )
+)
+
+
+; ================================================
+; D1 TEMPERATURE CONTROL — Heating  (salience 60)
+;
+; Crisp threshold rules carried forward from D1.
+; Fire before fuzzy rules (salience 50) so that on days with
+; certain readings these rules set the thermostat; the fuzzy
+; rules check (mode off) and skip, ensuring only one fires.
+;
+; Source: Natural Resources Canada heating guidelines
+; Targets: 20°C (awake), 17°C (sleep/away)
+; ================================================
+
+(defrule heat-awake
+    "Thermostat heat 20C: home occupied and awake, indoor temp below 20C. Winter only."
+    (declare (salience 60))
+    (env (date ?date) (temp ?t) (occupancy awake) (season winter))
+    (not (emergency ?date))
+    (test (< ?t 20))
+    ?th <- (themostat (date ?date) (mode off))
+    =>
+    (modify ?th (mode heat) (target-temp 20))
+    (assert (msg (date ?date) (text (str-cat
+        "Thermostat -> HEAT 20C. Reason: indoor temp " ?t
+        "C is below the 20C comfort target (awake, winter)."
+    ))))
+)
+
+(defrule heat-sleep
+    "Thermostat heat 17C: occupant sleeping, indoor temp below 17C. Winter only."
+    (declare (salience 60))
+    (env (date ?date) (temp ?t) (occupancy sleep) (season winter))
+    (not (emergency ?date))
+    (test (< ?t 17))
+    ?th <- (themostat (date ?date) (mode off))
+    =>
+    (modify ?th (mode heat) (target-temp 17))
+    (assert (msg (date ?date) (text (str-cat
+        "Thermostat -> HEAT 17C. Reason: indoor temp " ?t
+        "C is below the 17C sleep target (winter)."
+    ))))
+)
+
+(defrule heat-gone
+    "Thermostat heat 17C: home unoccupied, indoor temp below 17C. Winter only."
+    (declare (salience 60))
+    (env (date ?date) (temp ?t) (occupancy gone) (season winter))
+    (not (emergency ?date))
+    (test (< ?t 17))
+    ?th <- (themostat (date ?date) (mode off))
+    =>
+    (modify ?th (mode heat) (target-temp 17))
+    (assert (msg (date ?date) (text (str-cat
+        "Thermostat -> HEAT 17C. Reason: indoor temp " ?t
+        "C is below the 17C away target (winter)."
+    ))))
+)
+
+
+; ================================================
+; D1 TEMPERATURE CONTROL — Cooling  (salience 60)
+;
+; Source: Natural Resources Canada cooling guidelines
+; ================================================
+
+(defrule cool-awake
+    "Thermostat cool 25C: home occupied and awake, indoor temp above 25C. Summer only."
+    (declare (salience 60))
+    (env (date ?date) (temp ?t) (occupancy awake) (season summer))
+    (not (emergency ?date))
+    (test (> ?t 25))
+    ?th <- (themostat (date ?date) (mode off))
+    =>
+    (modify ?th (mode cool) (target-temp 25))
+    (assert (msg (date ?date) (text (str-cat
+        "Thermostat -> COOL 25C. Reason: indoor temp " ?t
+        "C exceeds the 25C occupied comfort limit (summer)."
+    ))))
+)
+
+(defrule cool-gone
+    "Thermostat cool 28C: home unoccupied, indoor temp above 28C. Summer only."
+    (declare (salience 60))
+    (env (date ?date) (temp ?t) (occupancy gone) (season summer))
+    (not (emergency ?date))
+    (test (> ?t 28))
+    ?th <- (themostat (date ?date) (mode off))
+    =>
+    (modify ?th (mode cool) (target-temp 28))
+    (assert (msg (date ?date) (text (str-cat
+        "Thermostat -> COOL 28C. Reason: indoor temp " ?t
+        "C exceeds the 28C unoccupied energy-saving limit (summer)."
+    ))))
+)
+
+(defrule thermostat-off-gone
+    "Thermostat stays OFF: home unoccupied and temp within limit. Summer only."
+    (declare (salience 60))
+    (env (date ?date) (temp ?t) (occupancy gone) (season summer))
+    (not (emergency ?date))
+    (test (<= ?t 28))
+    (themostat (date ?date) (mode off))
+    =>
+    (assert (msg (date ?date) (text (str-cat
+        "Home unoccupied, temp " ?t
+        "C is within 28C limit. Thermostat stays OFF (energy saving)."
+    ))))
 )
 
 
