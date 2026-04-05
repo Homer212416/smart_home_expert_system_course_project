@@ -2,6 +2,8 @@
 
 \usepackage{cite}
 \usepackage{url}
+\usepackage{amsmath}
+\usepackage{booktabs}
 
 \title{Expert System for Smart Home}
 \author{Yichen Cai, Yikai Chen}
@@ -181,7 +183,7 @@ The thermostat is modelled as a single device with three modes: \texttt{heat}, \
 \textbf{AND} the occupant status is \emph{awake} \\
 \textbf{AND} the indoor temperature exceeds 25\textdegree C \\
 \textbf{AND} the thermostat is off \\
-\textbf{THEN} set the thermostat to \emph{COOL} at 25\textdegree C and recommend: \textit{``Indoor temperature exceeds the 25.5\textdegree C occupied comfort limit (Natural Resources Canada).''}
+\textbf{THEN} set the thermostat to \emph{COOL} at 25\textdegree C and recommend: \textit{``Indoor temperature exceeds the 25\textdegree C occupied comfort limit (Natural Resources Canada).''}
 
 \paragraph{R7 -- Cooling When Away}
 \textbf{IF} the season is \emph{summer} \\
@@ -260,6 +262,319 @@ The following six rules fire independently for each day's sensor reading, provid
 \textbf{THEN} turn the air purifier \emph{on} and report: \textit{``Indoor IAQI is poor and outdoor AQHI exceeds 6. Keep windows closed to avoid worsening indoor air quality.''}
 
 
+
+
+% ================================================================
+% DELIVERABLE 2
+% ================================================================
+
+\section{D2 TODO 1: Improvements from Deliverable 1}
+
+\subsection{Identified Issues}
+
+Based on self-assessment of the D1 knowledge base, the following issues were identified:
+
+\begin{enumerate}
+    \item \textbf{Missing cooling rule for sleeping occupants.}
+    D1 provided cooling rules for \texttt{awake} (R6) and \texttt{gone} (R7) occupancy states in summer, but omitted the \texttt{sleep} state. Without this rule, the inference engine produces no thermostat recommendation on a warm summer night when the occupant is sleeping, which is a gap in coverage.
+
+    \item \textbf{Inconsistency between rule condition and report description for R6.}
+    The D1 report described the cooling threshold as ``25.5\textdegree C'' in the Cooling Guidelines subsection and in the R6 paragraph, but the actual rule condition checks \texttt{(> ?t 25)} and sets the target to 25\textdegree C. The report text has been corrected to 25\textdegree C.
+
+    \item \textbf{Missing occupancy state coverage for certain safety facts.}
+    The original D1 facts covered only \texttt{awake} and \texttt{gone} occupancy across the ten-day dataset, leaving the \texttt{sleep} state untested. The D2 data pipeline was updated to produce facts with varied occupancy states including \texttt{sleep}.
+\end{enumerate}
+
+\subsection{Changes Made}
+
+All changes are independently verifiable in the git history:
+
+\begin{itemize}
+    \item \texttt{rules.clp}: Added rule \texttt{cool-sleep} (salience 60) — cools to 26\textdegree C when the occupant is sleeping and indoor temperature exceeds 26\textdegree C in summer.
+    \item \texttt{report/report.tex}: Corrected the R6 threshold description from 25.5\textdegree C to 25\textdegree C in both the Cooling Guidelines subsection and the R6 rule paragraph.
+    \item \texttt{data\_scripts/combine\_facts.py}: The \texttt{both-air-quality-poor} rule's sentinel fact \texttt{(air-purifier-recommended ?date)} is already date-scoped, preventing cross-day interference that was a latent D1 risk.
+\end{itemize}
+
+
+% ================================================================
+
+\section{D2 TODO 2: Certainty Factors (Probabilistic Uncertainty)}
+
+\subsection{Theory}
+
+Certainty Factors (CF) were introduced in the MYCIN medical expert system (Shortliffe, 1976) to reason under probabilistic uncertainty without requiring full probability distributions. Each piece of evidence is assigned a CF value in the range $[0.0, 1.0]$, where 0.0 means no confidence and 1.0 means absolute confidence.
+
+When two independent pieces of evidence support the same hypothesis with certainties $CF_1$ and $CF_2$, they are combined as:
+\[
+CF_{\text{combined}} = CF_1 + CF_2 \cdot (1 - CF_1)
+\]
+
+In this system, CF values reflect sensor reliability estimates drawn from manufacturer specifications and domain knowledge:
+
+\begin{center}
+\begin{tabular}{lll}
+\hline
+Sensor & Base CF & Rationale \\
+\hline
+CO alarm & 0.85 & Manufacturer-rated reliability \cite{co_detector_standard} \\
+Smoke/fire alarm & 0.90 & High-sensitivity photoelectric sensor \\
+Occupancy sensor & 0.75 & Motion sensors have an approx.\ 25\% miss/false-positive rate \\
+Indoor IAQI (Atmotube) & 0.80 & Consumer-grade sensor, good but not lab-grade \\
+Outdoor AQHI & 0.70 & Government reading; nearest station may be distant \\
+\hline
+\end{tabular}
+\end{center}
+
+CF thresholds for action are:
+\begin{itemize}
+    \item $CF \geq 0.70$: high confidence — take full action (emergency)
+    \item $0.30 \leq CF < 0.70$: moderate — issue warning, investigate
+    \item $CF < 0.30$: low — likely false positive, notify user
+\end{itemize}
+
+\subsection{Fact Modifications}
+
+Five new slots were added to the \texttt{env} deftemplate in \texttt{templates.clp}:
+
+\begin{itemize}
+    \item \texttt{co-alarm-cf} (FLOAT, default 0.85) — confidence in the CO sensor reading
+    \item \texttt{fire-alarm-cf} (FLOAT, default 0.90) — confidence in the smoke/fire sensor
+    \item \texttt{occupancy-cf} (FLOAT, default 0.75) — confidence in the occupancy sensor
+    \item \texttt{iaqi-cf} (FLOAT, default 0.80) — confidence in the indoor air quality reading
+    \item \texttt{aqhi-cf} (FLOAT, default 0.70) — confidence in the outdoor AQHI value
+\end{itemize}
+
+These five slots constitute the required $\geq 5$ new useful facts per day. Each day's \texttt{env} fact in \texttt{facts.clp} now carries per-day CF values generated with Gaussian noise ($\sigma = 0.05$) around each base value, modelling day-to-day sensor variability (battery level, dust, temperature drift). Across ten days, this yields 50 new CF data points. The \texttt{generate\_indoor\_facts.py} and \texttt{combine\_facts.py} scripts were extended accordingly.
+
+\subsection{Rule Additions}
+
+Ten new rules were added to \texttt{rules.clp} at salience 90 and 25:
+
+\paragraph{CF1 -- CO Alarm, High Confidence ($CF \geq 0.70$)}
+\textbf{IF} the CO alarm is \emph{on} \textbf{AND} $CF \geq 0.70$ \\
+\textbf{THEN} assert an \texttt{emergency} sentinel and issue a full evacuation alert.
+
+\paragraph{CF2 -- CO Alarm, Moderate Confidence ($0.30 \leq CF < 0.70$)}
+\textbf{IF} the CO alarm is \emph{on} \textbf{AND} $0.30 \leq CF < 0.70$ \\
+\textbf{THEN} issue a warning to ventilate and inspect the sensor.
+
+\paragraph{CF3 -- CO Alarm, Low Confidence ($CF < 0.30$)}
+\textbf{IF} the CO alarm is \emph{on} \textbf{AND} $CF < 0.30$ \\
+\textbf{THEN} issue a notice that the reading is likely a false positive.
+
+\paragraph{CF4 -- Fire Alarm, High Confidence}
+\textbf{IF} the fire alarm is \emph{on} \textbf{AND} $CF \geq 0.70$ \\
+\textbf{THEN} assert \texttt{emergency} and issue a full evacuation alert.
+
+\paragraph{CF5 -- Fire Alarm, Moderate Confidence}
+\textbf{IF} the fire alarm is \emph{on} \textbf{AND} $0.30 \leq CF < 0.70$ \\
+\textbf{THEN} warn user to check for actual smoke before evacuating.
+
+\paragraph{CF6 -- Fire Alarm, Low Confidence}
+\textbf{IF} the fire alarm is \emph{on} \textbf{AND} $CF < 0.30$ \\
+\textbf{THEN} issue a false-positive notice; recommend inspecting the sensor.
+
+\paragraph{CF7 -- CO and Fire Combined}
+\textbf{IF} both alarms are \emph{on} \\
+\textbf{THEN} compute $CF_{\text{combined}} = CF_1 + CF_2 \cdot (1 - CF_1)$. If $\geq 0.70$, assert \texttt{emergency}; otherwise issue an investigation warning.
+
+\paragraph{CF8 -- Uncertain Occupancy Thermostat Default (salience 55)}
+\textbf{IF} occupancy is \emph{awake} \textbf{AND} occupancy-CF $< 0.60$ \textbf{AND} winter \textbf{AND} temp $< 20$°C \\
+\textbf{THEN} default thermostat to energy-saving 17°C instead of trusting the uncertain reading.
+
+\paragraph{CF9 -- IAQI Low Confidence Notice (salience 25)}
+\textbf{IF} iaqi-CF $< 0.60$ \\
+\textbf{THEN} qualify the air quality recommendation with a recalibration notice.
+
+\paragraph{CF10 -- AQHI Low Confidence Notice (salience 25)}
+\textbf{IF} aqhi-CF $< 0.60$ \\
+\textbf{THEN} note that the nearest AQHI station may be distant; treat window advice as advisory.
+
+The D1 rules \texttt{co-emergency} and \texttt{fire-emergency} (salience 100, unconditional) have been replaced by CF1--CF7, which provide graduated responses. This avoids duplicate emergency messages on days where both the D1 and CF rules would fire.
+
+
+% ================================================================
+
+\section{D2 TODO 3: Fuzzy Logic (Possibilistic Uncertainty)}
+
+\subsection{Theory}
+
+Fuzzy Logic, introduced by Zadeh (1965), extends classical logic to handle partial truth. A crisp value can belong to multiple linguistic sets simultaneously, each with a membership degree $\mu \in [0.0, 1.0]$.
+
+This system uses \textbf{FuzzyCLIPS} (NRC Canada, version 6.10d) \cite{fuzzyclips}, which extends CLIPS with native fuzzy deftemplates and the standard membership function shapes:
+
+\begin{itemize}
+    \item \textbf{Z-function} $Z(a, c)$: $\mu = 1$ for $x \leq a$, ramps linearly to $\mu = 0$ at $x = c$.
+    \item \textbf{S-function} $S(a, c)$: $\mu = 0$ for $x \leq a$, ramps linearly to $\mu = 1$ at $x = c$.
+    \item \textbf{PI-function} $\Pi(d, b)$: bell shape centred at $b$ with half-width $d$; $\mu = 1$ at $b$, $\mu = 0$ at $b \pm d$.
+\end{itemize}
+
+Inference follows the \textbf{Mamdani} method: the dominant linguistic label (argmax of membership degrees) drives rule selection. Membership degrees are computed using FuzzyCLIPS \texttt{get-fs-value} and stored in per-day \texttt{fuzzy-env} facts, which downstream rules read as ordinary slot values.
+
+\subsection{Fuzzy Variable Definitions}
+
+Three fuzzy linguistic variables are defined in \texttt{templates.clp} as FuzzyCLIPS deftemplates:
+
+\paragraph{Indoor Temperature} Universe: $[-10, 35]$°C
+\begin{itemize}
+    \item \texttt{cold}: $Z(10, 20)$ — $\mu=1$ at $\leq$10°C, $\mu=0$ at 20°C
+    \item \texttt{cool}: $\Pi(5, 15)$ — bell peak at 15°C
+    \item \texttt{comfortable}: $\Pi(3, 21)$ — bell peak at 21°C
+    \item \texttt{warm}: $\Pi(3, 25)$ — bell peak at 25°C
+    \item \texttt{hot}: $S(26, 35)$ — $\mu=0$ at 26°C, $\mu=1$ at 35°C
+\end{itemize}
+
+\paragraph{Indoor Relative Humidity} Universe: $[0, 100]$\%
+\begin{itemize}
+    \item \texttt{dry}: $Z(20, 35)$ — $\mu=1$ at $\leq$20\%, $\mu=0$ at 35\%
+    \item \texttt{comfortable}: $\Pi(10, 40)$ — bell peak at 40\%
+    \item \texttt{humid}: $S(50, 70)$ — $\mu=0$ at 50\%, $\mu=1$ at 70\%
+\end{itemize}
+
+\paragraph{Outdoor AQHI} Universe: $[1, 10]$
+\begin{itemize}
+    \item \texttt{good}: $Z(2, 5)$ — $\mu=1$ at AQHI $\leq$ 2, $\mu=0$ at 5
+    \item \texttt{moderate}: $\Pi(2, 5)$ — bell peak at AQHI = 5
+    \item \texttt{poor}: $S(5, 9)$ — $\mu=0$ at AQHI = 5, $\mu=1$ at 9
+\end{itemize}
+
+\subsection{Fact Modifications}
+
+One new deftemplate \texttt{fuzzy-env} was added to \texttt{templates.clp}, holding 14 slots:
+
+\begin{itemize}
+    \item Five temperature membership slots: \texttt{mu-cold}, \texttt{mu-cool}, \texttt{mu-comfortable-temp}, \texttt{mu-warm}, \texttt{mu-hot}
+    \item Three humidity membership slots: \texttt{mu-dry}, \texttt{mu-comfortable-hum}, \texttt{mu-humid}
+    \item Three AQHI membership slots: \texttt{mu-aqhi-good}, \texttt{mu-aqhi-moderate}, \texttt{mu-aqhi-poor}
+    \item Three dominant-label slots: \texttt{temp-label}, \texttt{hum-label}, \texttt{aqhi-label}
+\end{itemize}
+
+Each day's deffacts block in \texttt{facts.clp} now includes one blank \texttt{fuzzy-env} fact (initialised to 0.0) that is populated at inference time by the fuzzification rule. Ten \texttt{fuzzy-env} facts (one per day) constitute the required $\geq 5$ new useful facts for D2 TODO 3.
+
+\subsection{Rule Additions}
+
+Fifteen fuzzy rules were added, satisfying the $\geq 10$ requirement:
+
+\paragraph{FZ1 -- Fuzzification (salience 80)}
+\textbf{IF} an \texttt{env} fact and a blank \texttt{fuzzy-env} exist for the same date \\
+\textbf{THEN} use \texttt{get-fs-value} to compute all 11 membership degrees; determine the dominant label for each variable (argmax); store results in \texttt{fuzzy-env}.
+
+\paragraph{FZ2–FZ4 -- Fuzzy Heating: Cold Indoor Temperature (salience 50)}
+When the dominant temperature label is \texttt{cold} and the season is winter:
+\begin{itemize}
+    \item \texttt{awake}: heat to 21°C (high demand)
+    \item \texttt{sleep}: heat to 18°C (reduced night target)
+    \item \texttt{gone}: heat to 17°C (anti-freeze setback)
+\end{itemize}
+
+\paragraph{FZ5–FZ6 -- Fuzzy Heating: Cool Indoor Temperature (salience 50)}
+When the dominant label is \texttt{cool} and season is winter:
+\begin{itemize}
+    \item \texttt{awake}: heat to 19°C (moderate demand)
+    \item \texttt{sleep} or \texttt{gone}: heat to 17°C (setback)
+\end{itemize}
+
+\paragraph{FZ7 -- Fuzzy Comfortable Temperature (salience 50)}
+When the dominant label is \texttt{comfortable}: report no heating or cooling needed.
+
+\paragraph{FZ8–FZ9 -- Fuzzy Cooling: Warm/Hot Temperature (salience 50)}
+When season is summer and occupant is awake:
+\begin{itemize}
+    \item \texttt{warm}: cool to 25°C (moderate demand)
+    \item \texttt{hot}: cool to 23°C (high demand)
+\end{itemize}
+
+\paragraph{FZ10 -- Fuzzy Thermostat Off: Unoccupied in Summer (salience 50)}
+When the home is unoccupied and the dominant label is \texttt{comfortable}, \texttt{cool}, or \texttt{cold} in summer: report thermostat stays OFF for energy saving.
+
+\paragraph{FZ11–FZ13 -- Fuzzy Humidity Control (salience 40)}
+Using the dominant humidity label from \texttt{fuzzy-env}:
+\begin{itemize}
+    \item \texttt{dry}: turn on the humidifier; include membership degree in message
+    \item \texttt{humid}: turn on the dehumidifier; include membership degree
+    \item \texttt{comfortable}: report no action needed
+\end{itemize}
+
+\paragraph{FZ14–FZ15 -- Fuzzy AQHI Window Control (salience 35)}
+Using the dominant AQHI label:
+\begin{itemize}
+    \item \texttt{poor}: report window should stay closed; include $\mu_{\text{poor}}$
+    \item \texttt{good} or \texttt{moderate}: report outdoor air is acceptable
+\end{itemize}
+
+
+% ================================================================
+
+\section{D2 TODO 4: Quality Attributes}
+
+\subsection{Selected Quality Attributes}
+
+Four quality attributes were selected from those applicable to rule-based expert systems \cite{giarratano_riley}:
+
+\begin{enumerate}
+    \item \textbf{Explainability} — selected because the system controls physical devices in a home; residents must be able to audit every decision and decide whether to follow a recommendation.
+    \item \textbf{Reliability} — selected because D2 introduces sensor uncertainty; the system must handle degraded sensor inputs gracefully rather than treating all readings as ground truth.
+    \item \textbf{Accuracy} — selected because D2 adds fuzzy boundaries; the quality of the comfort model depends directly on how closely the membership functions match real human comfort ranges.
+    \item \textbf{Maintainability} — selected because both CF thresholds and fuzzy boundaries are likely to be tuned as standards evolve or better sensors are deployed; the knowledge base must support this without requiring broad rule changes.
+\end{enumerate}
+
+\subsection{Application of Quality Guidelines}
+
+\subsubsection{Explainability}
+
+\textbf{Guideline:} Every rule consequent should explain why an action was taken.
+
+\textbf{Where applied — D1 facts and rules (R1–R19):} Every rule asserts a \texttt{msg} fact whose \texttt{text} slot includes the triggering sensor value, the threshold compared against, and the authoritative source. For example, R9 reports the actual humidity percentage and cites Health Canada.
+
+\textbf{Where applied — D2 TODO 2 (CF rules CF1–CF10):} CF rules embed the numeric CF value in every message (e.g., ``CO detected with high confidence, CF=0.87''). CF7 reports both individual and combined CF values. This allows residents to distinguish a genuine emergency from a sensor malfunction.
+
+\textbf{Where applied — D2 TODO 3 (fuzzy rules FZ1–FZ15):} Fuzzy rules include the membership degree in every message (e.g., ``Humidity 28\% → dry ($\mu$=0.74). Humidifier ON.''). The fuzzification rule FZ1 computes and stores 11 membership values, all of which are available to downstream rules for reporting.
+
+\textbf{Verifiable in:} \texttt{rules.clp} — every \texttt{=>} consequent contains \texttt{(assert (msg ...))}.
+
+\subsubsection{Reliability}
+
+\textbf{Guideline:} The system should degrade gracefully when inputs are unreliable.
+
+\textbf{Where applied — D2 TODO 2 (CF rules):} Rule CF8 (\texttt{occupancy-uncertain-thermostat}) fires when the occupancy sensor CF falls below 0.60: instead of trusting a potentially erroneous \texttt{awake} reading and heating to 20°C, the system defaults to the energy-saving 17°C setback. Rules CF9 and CF10 qualify IAQI and AQHI recommendations with low-confidence notices rather than acting blindly. Rules CF1–CF7 replace the D1 binary alarm rules, distinguishing genuine emergencies from false positives based on CF level.
+
+\textbf{Where applied — D1 facts:} The \texttt{emergency} sentinel fact ensures that all device-control rules are suppressed on a day where a safety alarm has fired, preventing, for example, the thermostat from being adjusted during an evacuation scenario.
+
+\textbf{Verifiable in:} \texttt{rules.clp} — \texttt{occupancy-uncertain-thermostat}, \texttt{iaqi-uncertain-reading}, \texttt{aqhi-uncertain-reading}; all device rules check \texttt{(not (emergency ?date))}.
+
+\subsubsection{Accuracy}
+
+\textbf{Guideline:} Knowledge boundaries should reflect domain reality rather than arbitrary crisp cutoffs.
+
+\textbf{Where applied — D2 TODO 3 (fuzzy deftemplates and FZ rules):} The D1 heating rule fires if \texttt{temp < 20}; below 20°C the heater turns on at full target, above 20°C nothing happens. The fuzzy rules distinguish \texttt{cold} (peak membership at $\leq$10°C, target 21°C), \texttt{cool} (peak at 15°C, target 19°C), and \texttt{comfortable} (peak at 21°C, no action). A reading of 18°C, for example, activates both the \texttt{cool} and \texttt{comfortable} terms simultaneously; the dominant label selects the appropriate rule, and the target temperature varies with the degree of coldness.
+
+Similarly, humidity transitions (dry below 35\%, comfortable 30–50\%, humid above 50\%) overlap, so a reading of 33\% activates both \texttt{dry} and \texttt{comfortable} with partial degrees. The dominant label selects the action, and the membership degree appears in the explanation.
+
+\textbf{Where applied — D2 TODO 2:} CF thresholds for sensor confidence (0.70 / 0.30) are grounded in manufacturer reliability figures rather than arbitrary values.
+
+\textbf{Verifiable in:} \texttt{templates.clp} — FuzzyCLIPS deftemplate shapes for \texttt{fz-temp}, \texttt{fz-humidity}, \texttt{fz-aqhi}; \texttt{rules.clp} — FZ2–FZ15 use membership degree values in rule conditions and consequents.
+
+\subsubsection{Maintainability}
+
+\textbf{Guideline:} Thresholds and domain boundaries should be defined in one place and rules should not contain unexplained magic numbers.
+
+\textbf{Where applied — D1 and D2 TODO 2:} CF base values are defined as named constants in \texttt{generate\_indoor\_facts.py} (\texttt{CO\_CF\_BASE}, \texttt{FIRE\_CF\_BASE}, etc.) and template defaults in \texttt{templates.clp}. Changing the base reliability of the CO sensor requires editing one constant, not searching all rules.
+
+\textbf{Where applied — D2 TODO 3:} All fuzzy membership function parameters are defined once, in the FuzzyCLIPS deftemplates in \texttt{templates.clp} (e.g., \texttt{(cold (z 10 20))}). Adjusting the boundary at which a temperature is classified as ``cold'' requires changing two numbers in one line of the template; all downstream rules (FZ2–FZ4) automatically reflect the change without modification.
+
+The \texttt{fuzzy-env} template separates raw sensor data (\texttt{env}) from derived fuzzy membership values (\texttt{fuzzy-env}), making each layer independently modifiable. Rules and files are organised into clearly commented sections by salience and function.
+
+\textbf{Verifiable in:} \texttt{templates.clp} — FuzzyCLIPS deftemplate definitions; \texttt{data\_scripts/generate\_indoor\_facts.py} — named CF constants.
+
+\subsection{Impact on Quality of Knowledge Representation and Inference}
+
+\textbf{Explainability — positive impact.} CF values and fuzzy membership degrees appear in every output message. This gives residents substantially more information than D1 (which reported only actions). The cost is slightly longer messages and one additional \texttt{fuzzy-env} fact per day in working memory.
+
+\textbf{Reliability — positive impact.} The system now handles the common case of sensor unreliability. In D1, any CO alarm immediately caused a full emergency, including for a sensor with a dying battery. In D2, a low-CF CO alarm produces a notice rather than triggering evacuation, reducing false-alarm fatigue. The occupancy default (CF8) prevents over-heating an empty home when the sensor is uncertain.
+
+\textbf{Accuracy — positive impact.} Fuzzy boundaries eliminate the abrupt D1 transition: a room at 19.9°C was heated identically to one at 10°C in D1. In D2, the heating target varies with the degree of coldness (17–21°C range). This more closely models real thermostat behaviour and reduces energy waste from over-heating marginally cool rooms.
+
+\textbf{Maintainability — neutral to positive impact.} Centralising fuzzy boundaries in template definitions simplifies tuning; however, the overall knowledge base is now larger (41 rules across three salience groups vs.\ 20 rules in D1), which increases cognitive load for a new maintainer. The structured comments, natural rule names, and section headers mitigate this, keeping the net impact positive.
 
 
 \bibliographystyle{plain}

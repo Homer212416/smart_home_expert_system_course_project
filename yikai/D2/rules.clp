@@ -349,6 +349,21 @@
     ))))
 )
 
+(defrule cool-sleep
+    "Thermostat cool 26C: occupant sleeping, indoor temp above 26C. Summer only."
+    (declare (salience 60))
+    (env (date ?date) (temp ?t) (occupancy sleep) (season summer))
+    (not (emergency ?date))
+    (test (> ?t 26))
+    ?th <- (themostat (date ?date) (mode off))
+    =>
+    (modify ?th (mode cool) (target-temp 26))
+    (assert (msg (date ?date) (text (str-cat
+        "Thermostat -> COOL 26C. Reason: indoor temp " ?t
+        "C exceeds the 26C sleep comfort limit (summer)."
+    ))))
+)
+
 (defrule cool-gone
     "Thermostat cool 28C: home unoccupied, indoor temp above 28C. Summer only."
     (declare (salience 60))
