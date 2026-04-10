@@ -271,6 +271,18 @@
 ; writes them into the fuzzy-env fact for this date.
 ; ================================================
 
+; ================================================
+; 插入到 Salience 80 之前
+; ================================================
+(defrule initialize-fuzzy-env
+    "当发现新的环境数据，且还没有对应的 fuzzy-env 时，创建一个空白的。"
+    (declare (salience 85))
+    (env (date ?date))
+    (not (fuzzy-env (date ?date)))
+    =>
+    (assert (fuzzy-env (date ?date)))
+)
+
 (defrule fuzzify-temperature
     "Compute fuzzy temperature membership degrees and store in fuzzy-env."
     (declare (salience 80))
