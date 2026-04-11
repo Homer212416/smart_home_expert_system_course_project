@@ -1,0 +1,51 @@
+\begin{thebibliography}{1}
+
+\bibitem{atmotube_iaqi}
+{Atmotube}.
+\newblock Indoor air quality index (iaqi): What is it and how to use it.
+\newblock \url{https://atmotube.com/blog/indoor-air-quality-index-iaqi}, 2024.
+\newblock Accessed: 2026-01-31.
+
+\bibitem{giarratano_riley}
+Joseph~C. Giarratano and Gary~D. Riley.
+\newblock {\em Expert Systems: Principles and Programming}.
+\newblock Course Technology, 4th edition, 2005.
+
+\bibitem{health_canada_home}
+{Health Canada}.
+\newblock Healthy home guide.
+\newblock
+  \url{https://www.canada.ca/en/health-canada/services/healthy-home/guide.html},
+  2024.
+\newblock Accessed: 2026-01-31.
+
+\bibitem{fuzzyclips}
+{National Research Council Canada}.
+\newblock {FuzzyCLIPS} version 6.10d user's guide.
+\newblock Technical report, National Research Council Canada, Institute for
+  Information Technology, 2004.
+
+\bibitem{nrcan_cooling}
+{Natural Resources Canada}.
+\newblock Guide to room air conditioners.
+\newblock
+  \url{https://natural-resources.canada.ca/stories/spotlight-energy-efficiency/guide-room-air-conditioners},
+  2024.
+\newblock Accessed: 2026-01-31.
+
+\bibitem{nrcan_winter_heating}
+{Natural Resources Canada}.
+\newblock Winter is coming: Top tips to heat your home for less.
+\newblock
+  \url{https://natural-resources.canada.ca/stories/spotlight-energy-efficiency/winter-coming-top-tips-heat-your-home-less},
+  2024.
+\newblock Accessed: 2026-01-31.
+
+\bibitem{co_detector_standard}
+{Underwriters Laboratories}.
+\newblock {UL} 2034: Standard for single and multiple station carbon monoxide
+  alarms.
+\newblock Underwriters Laboratories Standard, 2023.
+\newblock Specifies detector sensitivity and response-time requirements.
+
+\end{thebibliography}
