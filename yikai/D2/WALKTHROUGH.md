@@ -15,7 +15,7 @@ D2 extends the D1 certain-knowledge expert system with two forms of uncertainty:
 The system is now run with **FuzzyCLIPS** instead of standard CLIPS:
 
 ```bash
-fzclips -f run.clp
+/Users/user/Applications/FuzzyCLIPS/source/fz_clips -f run.clp
 ```
 
 Or to regenerate fresh sensor data first:
@@ -25,8 +25,12 @@ conda activate crawler
 python data_scripts/crawler.py
 python data_scripts/generate_indoor_facts.py
 python data_scripts/combine_facts.py
-fzclips -f run.clp
+/Users/user/Applications/FuzzyCLIPS/source/fz_clips -f run.clp
 ```
+
+> **FuzzyCLIPS binary**: built from source at `~/Applications/FuzzyCLIPS/source/fz_clips`.  
+> To invoke it as `fzclips`, add a symlink:  
+> `sudo ln -s ~/Applications/FuzzyCLIPS/source/fz_clips /usr/local/bin/fzclips`
 
 ---
 
@@ -169,7 +173,7 @@ Fifteen fuzzy rules were added (FZ1–FZ15):
 
 | Rule | Salience | Description |
 |---|---|---|
-| `fuzzify-env` (FZ1) | 80 | Computes all 11 membership degrees via `get-fs-value`; finds argmax label for each variable; stores in `fuzzy-env` |
+| `fuzzify-env` (FZ1) | 80 | Computes all 11 membership degrees via `get-fs-value`; finds argmax label for each variable; stores in `fuzzy-env`. Guards with `(not (fuzzified ?date))` + asserts `(fuzzified ?date)` to fire exactly once per day (required because `modify` retracts and reasserts the fact, which would re-trigger the rule if the guard were a slot value check) |
 | `fuzzy-heat-cold-awake` (FZ2) | 50 | Cold + awake + winter → HEAT 21°C |
 | `fuzzy-heat-cold-sleep` (FZ3) | 50 | Cold + sleep + winter → HEAT 18°C |
 | `fuzzy-heat-cold-gone` (FZ4) | 50 | Cold + gone + winter → HEAT 17°C (anti-freeze) |
@@ -205,6 +209,48 @@ Fuzzy rules fire at salience 50/40/35, **after** CF safety rules (90) and fuzzif
 | −10 | Grouped output | print-all-grouped (1 rule) |
 
 **Total: 41 rules** (D1: 20 crisp → D2: +7 CF + 15 fuzzy - 1 removed = 41)
+
+---
+
+## FuzzyCLIPS 6.1 Compatibility Notes
+
+FuzzyCLIPS 6.10d is based on CLIPS 6.1. Two constructs used in the original code are CLIPS 6.2+ features and were replaced:
+
+### 1. `do-for-all-facts` / `any-factp` not available
+
+The original `print-grouped` deffunction used `do-for-all-facts` to iterate over facts and `any-factp` to test for matches. Neither exists in FuzzyCLIPS 6.1.
+
+**Fix:** The deffunction was removed. `print-all-grouped` was rewritten as a standard rule that directly pattern-matches `(msg (date ?d) (text ?t))` and prints each fact as it fires:
+
+```clips
+(defrule print-all-grouped
+    (declare (salience -10))
+    (msg (date ?d) (text ?t))
+    =>
+    (printout t "[" ?d "] " ?t crlf)
+)
+```
+
+Output is no longer grouped under date headers but all recommendations are printed.
+
+### 2. Infinite loop in `fuzzify-env`
+
+The original LHS pattern `(fuzzy-env (date ?date) (mu-cold 0.0))` was intended as a "not yet processed" guard. However, `modify` retracts the old fact and asserts a new one. If the computed `mu-cold` is exactly `0.0` (which happens whenever the temperature is warm enough to have zero cold membership), the modified fact still matches the LHS and the rule fires again — causing an infinite loop at 100% CPU.
+
+**Fix:** Replaced the slot-value guard with an explicit marker fact:
+
+```clips
+; LHS: added (not (fuzzified ?date))
+(defrule fuzzify-env
+    ...
+    ?fe <- (fuzzy-env (date ?date))
+    (not (fuzzified ?date))
+    =>
+    ...
+    (modify ?fe ...)
+    (assert (fuzzified ?date))   ; prevents re-firing
+)
+```
 
 ---
 

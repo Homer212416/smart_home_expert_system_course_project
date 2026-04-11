@@ -26,22 +26,10 @@
 ;   Rule evaluation: Mamdani min-based activation via dominant label
 ;   Defuzzification: crisp target-temp weighted by membership degree
 ; ================================================
+ 
 
-
-(deffunction print-grouped ()
-   "Print all msg facts grouped by date in chronological order."
-   (do-for-all-facts ((?e env)) TRUE
-      (bind ?d (fact-slot-value ?e date))
-      (if (any-factp ((?m msg)) (eq (fact-slot-value ?m date) ?d))
-          then
-             (printout t crlf "=== " ?d " ===" crlf)
-             (do-for-all-facts ((?m msg)) (eq (fact-slot-value ?m date) ?d)
-                (printout t "  " (fact-slot-value ?m text) crlf)
-             )
-      )
-   )
-   (printout t crlf)
-)
+; print-grouped replaced with a rule-based approach for FuzzyCLIPS 6.1 compatibility
+; (do-for-all-facts and any-factp are CLIPS 6.2+ features not available in FuzzyCLIPS)
 
 
 ; ================================================
@@ -177,7 +165,8 @@
      Fires once per env fact; modifies the blank fuzzy-env fact for that date."
     (declare (salience 80))
     (env (date ?date) (temp ?t) (humidity ?h) (AQHI ?a))
-    ?fe <- (fuzzy-env (date ?date) (mu-cold 0.0))
+    ?fe <- (fuzzy-env (date ?date))
+    (not (fuzzified ?date))
     =>
     (bind ?ft (float ?t))
     (bind ?fh (float ?h))
@@ -267,6 +256,7 @@
         (hum-label           ?hum-label)
         (aqhi-label          ?aqhi-label)
     )
+    (assert (fuzzified ?date))
 )
 
 
@@ -805,8 +795,9 @@
 ; ================================================
 
 (defrule print-all-grouped
-    "After all rules have fired, print every recommendation grouped by date."
+    "After all rules have fired, print every recommendation (FuzzyCLIPS-compatible)."
     (declare (salience -10))
+    (msg (date ?d) (text ?t))
     =>
-    (print-grouped)
+    (printout t "[" ?d "] " ?t crlf)
 )

@@ -1,7 +1,7 @@
 ; ---------
 ; Templates
 ; ---------
-
+ 
 ; data from sensors
 (deftemplate env
     ; indoor data

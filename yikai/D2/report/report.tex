@@ -456,8 +456,12 @@ Each day's deffacts block in \texttt{facts.clp} now includes one blank \texttt{f
 Fifteen fuzzy rules were added, satisfying the $\geq 10$ requirement:
 
 \paragraph{FZ1 -- Fuzzification (salience 80)}
-\textbf{IF} an \texttt{env} fact and a blank \texttt{fuzzy-env} exist for the same date \\
-\textbf{THEN} use \texttt{get-fs-value} to compute all 11 membership degrees; determine the dominant label for each variable (argmax); store results in \texttt{fuzzy-env}.
+\textbf{IF} an \texttt{env} fact exists for a given date \textbf{AND} no \texttt{(fuzzified ?date)} marker exists \\
+\textbf{THEN} use \texttt{get-fs-value} to compute all 11 membership degrees; determine the dominant label for each variable (argmax); store results in the matching \texttt{fuzzy-env} fact via \texttt{modify}; assert \texttt{(fuzzified ?date)}.
+
+The \texttt{(not (fuzzified ?date))} guard is necessary because FuzzyCLIPS's \texttt{modify} retracts the old fact and reasserts a new one.
+If the guard were a slot-value check (e.g., \texttt{mu-cold = 0.0}), a day whose computed cold-membership is exactly 0.0 would re-match the LHS after \texttt{modify}, causing an unbounded inference loop.
+The marker fact is asserted in the consequent to ensure FZ1 fires exactly once per day regardless of the computed membership values.
 
 \paragraph{FZ2–FZ4 -- Fuzzy Heating: Cold Indoor Temperature (salience 50)}
 When the dominant temperature label is \texttt{cold} and the season is winter:
@@ -501,6 +505,20 @@ Using the dominant AQHI label:
     \item \texttt{poor}: report window should stay closed; include $\mu_{\text{poor}}$
     \item \texttt{good} or \texttt{moderate}: report outdoor air is acceptable
 \end{itemize}
+
+\subsection{FuzzyCLIPS 6.1 Compatibility}
+
+FuzzyCLIPS 6.10d is based on CLIPS 6.1. Two constructs present in the original implementation required adjustment for compatibility:
+
+\textbf{Output rule (\texttt{print-all-grouped}, salience $-10$).}
+The original design used a \texttt{deffunction} that called \texttt{do-for-all-facts} and \texttt{any-factp} to iterate over \texttt{msg} facts grouped by date.
+These functions were introduced in CLIPS 6.2 and are absent from FuzzyCLIPS 6.10d.
+The deffunction was removed; \texttt{print-all-grouped} was rewritten as a standard production rule that directly pattern-matches \texttt{(msg (date ?d) (text ?t))} and prints each fact as it fires.
+The rule count remains 41; only the output format changes (date-grouped headers are omitted; each line is prefixed with \texttt{[date]}).
+
+\textbf{Fuzzification guard (\texttt{fuzzify-env}, FZ1).}
+As described above, the guard was changed from a slot-value sentinel to a \texttt{(not (fuzzified ?date))} pattern, with \texttt{(fuzzified ?date)} asserted in the consequent.
+This fix is required for correctness on any day whose computed cold-membership evaluates to exactly 0.0.
 
 
 % ================================================================
